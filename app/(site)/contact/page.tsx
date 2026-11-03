@@ -35,7 +35,7 @@ export default async function ContactPage() {
           <aside className="space-y-4 lg:col-span-4">
             {channels.map(({ Icon, label, value, href }) => (
               <div key={label} className="flex items-start gap-4 rounded-[1.25rem] bg-mist p-5 ring-1 ring-line">
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-blue text-white">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-ink text-white">
                   <Icon size={19} />
                 </span>
                 <div className="min-w-0">

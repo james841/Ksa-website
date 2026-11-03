@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import * as m from "motion/react-m";
-import { ArrowRight } from "@/components/ui/icons";
+import { ArrowRight, Video } from "@/components/ui/icons";
 import { CurvedCarousel, type Slide } from "./curved-carousel";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -45,9 +45,8 @@ export function Hero({ badge, slides, image }: { badge: string; slides: Slide[];
             href="/webinars"
             className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-1.5 pl-2 pr-4 font-display text-[0.82rem] font-medium text-white transition-colors hover:border-white/50 hover:bg-white/15 sm:text-sm"
           >
-            <span className="relative flex size-2.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-sky/60" />
-              <span className="relative inline-flex size-2.5 rounded-full bg-sky" />
+            <span className="grid size-6 place-items-center rounded-full bg-white/15 text-sky">
+              <Video size={14} />
             </span>
             {badge}
             <ArrowRight size={15} className="text-sky transition-transform group-hover:translate-x-0.5" />
@@ -88,9 +87,9 @@ export function Hero({ badge, slides, image }: { badge: string; slides: Slide[];
           {...rise(0.9)}
           className="container-x flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pb-14 pt-7 font-display text-[0.82rem] font-medium text-ink/70 sm:pb-16 sm:text-sm"
         >
-          {audiences.map((who) => (
-            <li key={who} className="flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-blue" aria-hidden />
+          {/* Hairline separators instead of bullet dots: quieter, and it reads as typesetting. */}
+          {audiences.map((who, i) => (
+            <li key={who} className={i === 0 ? "" : "border-l border-line pl-6"}>
               {who}
             </li>
           ))}

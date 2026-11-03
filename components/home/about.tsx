@@ -54,9 +54,10 @@ export function AboutPreview() {
           </Reveal>
 
           <Reveal delay={0.1}>
-            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-7 border-t border-line pt-8">
-              {facts.map((f) => (
-                <div key={f.small}>
+            {/* Hairline grid: the numbers are separated by rules, the way a report sets out figures. */}
+            <dl className="mt-10 grid grid-cols-2 border-t border-line">
+              {facts.map((f, i) => (
+                <div key={f.small} className={`py-6 ${i % 2 === 0 ? "pr-6" : "border-l border-line pl-6"} ${i > 1 ? "border-t border-line" : ""}`}>
                   <dt className="sr-only">{f.small}</dt>
                   <dd>
                     <span className="block font-display text-3xl leading-none text-ink sm:text-[2.1rem]">{f.big}</span>
@@ -68,16 +69,13 @@ export function AboutPreview() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <ul className="mt-10 space-y-5">
+            {/* Each point is marked by a thin rule down its left edge, which deepens on hover. */}
+            <ul className="mt-10 space-y-6">
               {whyChooseUs.map((w) => (
-                <li key={w.title} className="flex gap-4">
-                  <span className="mt-1.5 grid size-6 shrink-0 place-items-center rounded-full bg-blue-50">
-                    <span className="size-2 rounded-full bg-blue" />
-                  </span>
-                  <div>
-                    <p className="font-semibold text-ink">{w.title}</p>
-                    <p className="mt-1 text-[0.95rem] leading-relaxed text-muted">{w.text}</p>
-                  </div>
+                <li key={w.title} className="group relative pl-5 sm:pl-6">
+                  <span aria-hidden className="absolute inset-y-1 left-0 w-[2px] bg-line transition-colors duration-300 group-hover:bg-blue" />
+                  <p className="font-display text-[1.05rem] font-semibold leading-snug text-ink">{w.title}</p>
+                  <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{w.text}</p>
                 </li>
               ))}
             </ul>

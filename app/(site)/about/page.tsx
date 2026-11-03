@@ -86,9 +86,13 @@ export default async function AboutPage() {
           </Reveal>
           <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {whyChooseUs.map((w, i) => (
-              <RevealItem key={w.title} className="flex h-full flex-col rounded-[1.4rem] bg-white p-7 shadow-soft ring-1 ring-line">
-                <span className="font-display text-4xl text-blue">{String.fromCharCode(65 + i)}</span>
-                <h3 className="mt-6 font-display text-xl text-ink">{w.title}</h3>
+              <RevealItem
+                key={w.title}
+                className="group flex h-full flex-col rounded-[1.4rem] bg-white p-7 shadow-soft ring-1 ring-line transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift"
+              >
+                <span className="font-display text-sm font-semibold tracking-[0.18em] text-muted">{String(i + 1).padStart(2, "0")}</span>
+                <span aria-hidden className="mt-4 block h-[2px] w-10 bg-blue transition-[width] duration-300 group-hover:w-16" />
+                <h3 className="mt-6 font-display text-xl leading-snug text-ink">{w.title}</h3>
                 <p className="mt-3 leading-relaxed text-muted">{w.text}</p>
               </RevealItem>
             ))}

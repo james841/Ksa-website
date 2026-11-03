@@ -47,7 +47,7 @@ export function CtaBand() {
                 <ul className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-sm font-semibold">
                   {["Experienced team", "Affordable pricing", "Zero plagiarism policy"].map((t) => (
                     <li key={t} className="flex items-center gap-2">
-                      <span className="grid size-6 place-items-center rounded-full bg-white/15">
+                      <span className="grid size-6 place-items-center rounded-md bg-white/15">
                         <Check size={14} />
                       </span>
                       {t}
