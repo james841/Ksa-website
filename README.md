@@ -1,36 +1,466 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Knowledge Space Academy website
 
-## Getting Started
+**Research. Insight. Impact.**
 
-First, run the development server:
+One Next.js application that runs the public website, user accounts, free webinar
+registration, self-paced online courses, email campaigns and the admin dashboard.
+Everything shares one PostgreSQL database, so a person who signs up for a webinar
+uses the same account later for courses.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Part | Technology |
+| --- | --- |
+| Website, dashboards, server logic | Next.js 16 (App Router, Cache Components) + TypeScript |
+| Styling and animation | Tailwind CSS 4 + Motion (Framer Motion), Poppins (headings) + Plus Jakarta Sans (text) |
+| Database | PostgreSQL (managed in pgAdmin) through Drizzle ORM |
+| Email | Resend (account emails, quote replies, webinar emails, campaigns) |
+| Uploaded files | Local `storage/` folder (public images + private course files) |
+
+---
+
+## 1. Set up on your computer
+
+You need **Node.js 20 or newer** and **PostgreSQL** (with pgAdmin).
+
+### a) Create the database in pgAdmin
+
+1. Open pgAdmin and connect to your local server.
+2. Right-click **Databases → Create → Database…**
+3. Name it `ksa` and click **Save**.
+
+### b) Add your settings
+
+Copy `.env.example` to a new file called `.env` and fill it in:
+
+```
+DATABASE_URL=postgresql://postgres:YOUR_PGADMIN_PASSWORD@localhost:5432/ksa
+RESEND_API_KEY=re_...
+EMAIL_FROM="Knowledge Space Academy <hello@yourdomain.com>"
+ADMIN_NOTIFY_EMAIL=you@yourdomain.com
+ADMIN_EMAIL=you@yourdomain.com
+ADMIN_PASSWORD=a-strong-password
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`postgres` is the default pgAdmin user. Use the password you set when you installed PostgreSQL.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### c) Install, build the tables and load the starting content
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run setup        # creates all tables, then loads FAQs, advisory board, carousel cards, 14 planned courses and your admin account
+npm run dev          # open http://localhost:3000
+```
 
-## Learn More
+Log in at `/login` with `ADMIN_EMAIL` and `ADMIN_PASSWORD`. Because you are an admin,
+the header shows **Admin** and takes you to `/admin`.
 
-To learn more about Next.js, take a look at the following resources:
+After `npm run setup` you can see every table in pgAdmin under
+**ksa → Schemas → public → Tables**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Updating an existing copy:** after pulling new code, run `npm run db:migrate` once.
+It adds new columns and tables (for example team roles and the low-data course flag)
+without touching your data. Then `npm run db:check` should show all 25 tables.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Useful commands
 
-## Deploy on Vercel
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Run locally with live reload |
+| `npm run build` then `npm start` | Production build and server |
+| `npm run storage:upload` | Copy the local `storage` folder up to Supabase Storage (add `-- --go` to really send) |
+| `npm run db:check` | Tests the database connection and setup, and tells you exactly what to fix |
+| `npm run db:migrate` | Apply new database changes |
+| `npm run db:seed` | Load starting content (only fills empty tables, safe to re-run) |
+| `npm run create-admin` | Create or promote the admin from `.env` |
+| `npm run db:generate` | After editing `lib/db/schema.ts`, create a new migration |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### If you cannot log in, or pages show no data
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run `npm run db:check`. It explains the problem in plain words, for example:
+
+| Message | Fix |
+| --- | --- |
+| The database tables have not been created yet | `npm run setup` |
+| The database named in DATABASE_URL does not exist | Create a database called `ksa` in pgAdmin, then `npm run setup` |
+| PostgreSQL rejected the username or password | Fix the password in `DATABASE_URL` in `.env` |
+| PostgreSQL is not running | Windows: open **Services**, find **postgresql**, click **Start** |
+| No admin account yet | `npm run create-admin` |
+
+After changing `.env`, stop and restart `npm run dev`. Log in with `ADMIN_EMAIL` and `ADMIN_PASSWORD` from `.env`.
+
+### Red underlines in VS Code
+
+- Accept the prompt to install the recommended extensions (Tailwind CSS IntelliSense, ESLint).
+  Without the Tailwind extension, VS Code marks `@theme` and `@utility` in `globals.css` as unknown.
+- When VS Code asks "Use workspace TypeScript version?", choose **Allow** (the project ships its own settings in `.vscode/`).
+- Types for pages (`PageProps`, `LayoutProps`) are generated by `npm install` and `npm run dev`. If they still show red,
+  run `npm run typecheck` once, then in VS Code press Ctrl+Shift+P and choose **TypeScript: Restart TS Server**.
+
+### "A tree hydrated but some attributes didn't match" with `fdprocessedid`
+
+This comes from a browser extension (Edge, IDM or a password manager) adding attributes to form fields. It is harmless.
+Form fields ignore those extra attributes, so the message should no longer appear. Testing in a private window
+(where extensions are off) confirms it.
+
+---
+
+## 2. Email with Resend
+
+1. Create an account at resend.com and **verify your domain** (Domains → Add domain, then add the DNS records it shows).
+2. Create an API key and put it in `RESEND_API_KEY`.
+3. Set `EMAIL_FROM` to an address on that domain.
+4. Optional but recommended: in Resend → Webhooks add `https://yourdomain.com/api/webhooks/resend`
+   for the events *delivered*, *bounced* and *complained*. Put the signing secret in `RESEND_WEBHOOK_SECRET`.
+   Bounced and complaining addresses are then unsubscribed automatically.
+
+Without an API key the site still works: emails are printed in the terminal instead of sent,
+which is handy while testing.
+
+---
+
+## 3. How the website works
+
+### Public website
+Home, About, 8 research service pages, Institutions, Webinars, Courses, Publishing
+(DJIS partnership, conferences, advisory board), FAQs, Contact and Request a quote.
+Service text comes from the KSA brief and lives in `lib/content.ts`.
+
+**Homepage order:** hero with the 3D curved carousel inside it → the four process steps (#01 to #04)
+→ scrolling services strip → about and why choose us → services grid → institutions
+→ webinars and courses → publishing and board → FAQs → quote call to action.
+
+The **curved carousel** sits cards on the inside of a cylinder, so outer cards turn in and
+look larger, like your reference design. It drifts slowly, pauses on hover and when
+off-screen, can be dragged or moved with the arrows, and respects "reduce motion".
+Its cards are managed in **Admin → Homepage carousel**.
+
+### Accounts
+- Anyone can register (name, email, password; country and institution optional).
+- Marketing emails are a **separate, unticked checkbox**. The site stores the exact wording
+  agreed to, when, and from where, plus every later unsubscribe. Creating an account never
+  signs anyone up for marketing.
+- Email verification, password reset, "log out everywhere", and email preferences are built in.
+- Passwords are hashed with scrypt. Sessions are random tokens stored hashed in the database,
+  in an httpOnly cookie.
+
+### Webinars
+1. Admin creates a webinar, adds the date (Lagos time) and later the Zoom link, then publishes it.
+2. Visitors open the webinar page. To register they log in or create a free account.
+3. Registration is saved once per person (duplicates are blocked) and a confirmation email is sent.
+4. The Zoom link is only shown to registered people (dashboard and email), never on the public page.
+5. Admin sees the list, exports CSV, emails everyone registered, marks attendance, or cancels and notifies.
+
+### Online courses
+- Course → modules → lessons. Each lesson can have a video, written notes and private files.
+- **Status:** Draft (hidden), Coming soon (listed with "notify me"), Published, Archived.
+- **Access:** "Anyone with a free account" or "Invite only" (admin grants access by email,
+  for paid or institution courses).
+- Learners get a dashboard with progress bars, resume where they stopped, and completion records.
+- Lessons and files are only served after the server checks the learner has access.
+  Private files are never in a public folder and are streamed through `/api/files/[id]`.
+- For video, use **Vimeo with domain privacy** or Bunny Stream for the best protection.
+  No website can fully stop screen recording; this setup controls access and makes casual sharing hard.
+- **How video works:** videos are not stored on this server. You upload each video to Vimeo,
+  Bunny Stream or YouTube (unlisted) and paste its link into the lesson. The video host
+  streams it and adjusts quality to the learner's connection. The lesson page shows a
+  "Play the video" panel with a data estimate (based on the lesson minutes), and nothing from
+  the video host loads until the learner presses play.
+- **Audio lessons:** upload an MP3, M4A or OGG file as a lesson resource and it becomes a
+  player on the lesson page ("Listen to this lesson"). Export speech as mono at 48-64 kbps:
+  about 0.4 MB a minute, versus 3-5 MB a minute for low-quality video. Audio only downloads
+  when the learner presses play, and it can resume and skip (byte-range support).
+- **Low data friendly courses:** tick "Low data friendly" on a course when every lesson has
+  full text notes or an audio file. Those courses get a badge and a filter in the catalogue.
+
+### Data saver (low data mode)
+- A **Data saver** switch sits in the top bar, the phone menu, the footer and the course player.
+  It turns on automatically if the visitor's phone or browser asks to save data
+  (Save-Data, Lite mode, or a 2G connection), unless they switched it off.
+- When on: the hero photo and decorative pictures are not downloaded, animations and the
+  carousel drift stop, carousel images load smaller, and Vimeo videos start at 240p.
+- The choice is remembered on that device.
+
+### Homepage photo
+- The default hero photo is "A group of people sitting on a bench with laptops" by
+  Iwaria Inc. on Unsplash (free Unsplash License, credit appreciated, not required):
+  https://unsplash.com/photos/vWqBjWbc_H4. It is served through Next.js image optimisation,
+  so visitors get a compressed AVIF/WebP sized for their screen.
+- Replace it any time in **Admin → Site settings → Homepage → Background photo**. A solid
+  navy layer always sits on top so the text stays readable. Do not use Pinterest images:
+  most are copyrighted by someone else.
+
+### Admin dashboard (`/admin`)
+| Section | What you can do |
+| --- | --- |
+| Dashboard | New quotes, users, subscribers, enrolments, 30-day sign-up chart, follow-ups due, upcoming webinars |
+| Quote requests | Filter by status, service and date; read; reply by email; internal notes; follow-up reminders; status New → In progress → Responded → Closed; CSV export |
+| Users | Search; see each person's webinars, courses, quotes and consent history; grant or remove course access; suspend |
+| Subscribers | Opted-in list, unsubscribe, add someone who agreed offline, CSV export |
+| Webinars | Create, publish, cancel, attendees, email attendees, attendance |
+| Courses | Course pages, curriculum builder, lesson editor, private uploads, learners and progress |
+| Email campaigns | Write in simple formatting, choose audience (all subscribers, a webinar's registrants, a course's learners), send a test, send now or schedule, delivery log |
+| Site settings | Contact details, WhatsApp, socials, announcement bar, alerts email, homepage badge and photo |
+| Homepage carousel, FAQs, Advisory board | Add, edit, reorder, hide |
+| Team and access | Invite people by email with a role, change roles, remove access, resend or cancel invites |
+| Activity log | Who changed what and when |
+
+### Admin team and roles
+| Role | Can open |
+| --- | --- |
+| Super admin | Everything, including managing other super admins |
+| Admin | Everything and the team page, but cannot add, change or remove super admins |
+| Content editor | Site settings, homepage carousel, FAQs, advisory board, webinars |
+| Course manager | Courses, lessons and files, webinars, users (to give course access) |
+| Support | Quote requests, users, subscribers |
+| Marketing | Email campaigns, subscribers, webinars |
+
+How to add someone: **Team and access → Invite someone**, enter their email and role.
+They get an email link (valid 7 days, works once, only for that email). They log in or
+create a free account with that email and press **Accept**. Safety rules: nobody can change
+or remove themselves, only super admins manage super admins, and there is always at least
+one super admin. Removing someone signs them out everywhere; their normal learner account stays.
+Admins created before roles existed, and the `npm run create-admin` account, are super admins.
+
+### Confirmation pop-ups
+Every save, upload, reorder, delete and invite answers with a small card in the corner:
+a tick that draws itself, what happened, and a thin bar counting down before it closes.
+Hovering keeps it on screen, and the close button removes it straight away. Failures appear
+in red and also stay next to the form, so nothing is missed. Actions that finish on another
+page (creating a course, deleting a quote) carry a short flag in the web address, so the
+confirmation shows on the page you land on.
+
+### Email alerts
+Alerts are emailed as things happen. Each one goes to two places:
+
+1. **The general alerts address**, set in **Admin → Site settings → Alerts email**
+   (it falls back to `ADMIN_NOTIFY_EMAIL` in `.env`). Nothing is missed when people are away.
+2. **Each team member whose role covers it**, and only them.
+
+| Alert | Goes to the roles that cover |
+| --- | --- |
+| New quote request | Quote requests (Support, Admin, Super admin) |
+| New account on the website | Users |
+| New email subscriber | Subscribers (Support, Marketing) |
+| New webinar registration | Webinars |
+| New course enrolment, and "tell me when it opens" | Courses |
+| Campaign sent or failed, including scheduled sends | Email campaigns (Marketing) |
+| Someone joins the team, a role changes, access removed | Team |
+
+So Support gets the quote requests, Marketing gets the subscribers and campaign results,
+and the Course manager gets the enrolments. Each person can switch their own alerts off on
+the admin dashboard ("Email alerts" card); the general address still receives everything.
+The emails say which role they were sent to, and link straight to the right admin page.
+Sending an alert can never break the website: if email fails, the problem is logged and the
+visitor's action still goes through.
+
+Every admin page **and every admin action** checks on the server that the user is on the team
+and that their role includes that section.
+A small `proxy.ts` also redirects people without a session before any page code runs.
+
+### Scheduled campaigns
+Campaigns scheduled for later are sent by `/api/cron/campaigns`. Call it every 10 minutes with
+your `CRON_SECRET`:
+
+- **Vercel:** add a cron job in `vercel.json`, e.g. `{"crons":[{"path":"/api/cron/campaigns","schedule":"*/10 * * * *"}]}` and set `CRON_SECRET` (Vercel sends it automatically).
+- **Your own server:** `*/10 * * * * curl -s -H "Authorization: Bearer YOUR_CRON_SECRET" https://yourdomain.com/api/cron/campaigns`
+
+"Send now" works without any cron job.
+
+---
+
+## 4. Speed
+
+- Public pages are prerendered and cached (`"use cache"` with tags). When the admin saves
+  something, only the affected data is refreshed, with no redeploy.
+- Images are served as AVIF/WebP at the right size for each device. Admin uploads are
+  compressed to WebP automatically (a 3MB photo becomes roughly 120–250KB).
+- Fonts are self-hosted and preloaded (no Google Fonts request). Motion uses the small
+  `LazyMotion` bundle. The hero headline uses a CSS animation so it paints immediately.
+- Measured on the production build: first load about 0.3s locally, zero layout shift.
+
+## 5. Security
+
+- **Passwords:** scrypt hashing, at least 8 characters with a letter and a number. Changing or resetting a password signs out every other device.
+- **Sessions:** random tokens stored hashed in the database, httpOnly + SameSite cookie, a new session id on every login. On an https site the cookie
+  uses the `__Host-` prefix and `Secure` flag.
+- **Brute force:** login is limited per IP and per email; registration, password reset, quote and newsletter forms are rate-limited and have a hidden bot trap.
+- **Admin:** every admin page and every admin action checks the admin role on the server, plus `proxy.ts` blocks visitors without a session. All admin changes go in the Activity log.
+- **Injection:** all database access is parameterised (Drizzle). Admin-written text (lessons, webinar descriptions, emails) is sanitised, so scripts,
+  event handlers and `javascript:` links are removed.
+- **Headers:** Content-Security-Policy, HSTS, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy and Cross-Origin-Opener-Policy on every page.
+- **Uploads:** checked by real file content (not just the name), images re-encoded to WebP, private files only served to enrolled learners inside a sandbox.
+- **Redirects:** the login "next" link only allows pages on this site.
+- **Forms:** server actions only accept requests from this site (built-in Next.js origin check).
+
+Before going live: use a long random `CRON_SECRET`, a strong `ADMIN_PASSWORD`, set `NEXT_PUBLIC_SITE_URL` to your https address, and keep `.env` out of git (it already is).
+
+## 6. SEO
+
+- Unique title, description, keywords, canonical URL, Open Graph and Twitter card on every page.
+- Structured data: EducationalOrganization, WebSite, BreadcrumbList, FAQPage, Course, Event (webinars) and Service.
+- `sitemap.xml` (includes webinars and courses from the database), `robots.txt` (blocks admin, dashboard and API), web manifest, icons, social share image.
+- Semantic headings, alt text, fast Core Web Vitals, mobile-first layout.
+
+After launch: add the site to **Google Search Console**, submit `https://yourdomain.com/sitemap.xml`,
+and set `NEXT_PUBLIC_SITE_URL` to your real domain.
+
+---
+
+## 7. Going live on Vercel with Supabase
+
+This moves the website to Vercel (free to start) and the database to Supabase.
+Work through it in order. Keep your local copy running as it is until the last step:
+nothing here changes anything on your computer.
+
+### a) Create the Supabase project
+1. Sign up at supabase.com, create a project, and **save the database password** it asks you
+   to choose. You cannot see it again later.
+2. Wait for the project to finish setting up (about two minutes).
+3. Press **Connect** at the top of the dashboard and copy two connection strings:
+   - **Transaction pooler** (port **6543**). This is what the website uses.
+   - **Direct connection** (port **5432**). This is what migrations use. If your network
+     cannot reach it, use the **Session pooler** string instead (also port 5432).
+
+### b) Move the data across
+Use a second terminal, with PostgreSQL running on your computer.
+
+```bash
+# 1. Save everything that is in your local database into one file
+pg_dump --no-owner --no-privileges --schema=public --schema=drizzle ^
+  --file=ksa-backup.sql "postgresql://postgres:YOUR_LOCAL_PASSWORD@localhost:5432/ksa"
+
+# 2. Load that file into Supabase (use the DIRECT or SESSION string, not the pooler on 6543)
+psql -v ON_ERROR_STOP=1 -f ksa-backup.sql "postgresql://postgres.PROJECT:SUPABASE_PASSWORD@HOST:5432/postgres"
+```
+
+On Windows `pg_dump` and `psql` live in `C:\Program Files\PostgreSQL\18\bin`. Add that folder
+to your PATH, or run the commands from inside it. The `^` above is the Windows line-continuation
+character; on Mac or Linux use `\`.
+
+This carries your accounts, settings, courses, webinars, quotes and the record of which
+migrations have run, so `npm run db:migrate` keeps working afterwards.
+
+**Prefer a clean start?** Skip the dump and run this once with `.env` pointing at Supabase:
+`npm run setup` then `npm run create-admin`. You then re-enter the content by hand.
+
+### c) Move the uploaded files
+Vercel does not keep files written to disk, so images and course files move to Supabase Storage.
+
+1. In Supabase, open **Storage → New bucket**, name it `ksa-files`, and leave it **private**.
+2. In Supabase, open **Project settings → API keys** and copy the **service role** key.
+   Treat it like a password: it goes in `.env` and in Vercel, never in the browser and never in git.
+3. Add to your local `.env`:
+   ```
+   SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=the-service-role-key
+   SUPABASE_STORAGE_BUCKET=ksa-files
+   ```
+4. Send the existing files up:
+   ```bash
+   npm run storage:upload           # lists what it would send
+   npm run storage:upload -- --go   # sends them
+   ```
+
+The website picks the right place automatically: with those two Supabase values set, uploads go
+to the bucket; without them, they go to the `storage` folder as before. Files are still served
+only through `/media` and `/api/files`, so private course files stay private.
+
+### d) Point the site at Supabase and test locally
+In `.env`:
+
+```
+DATABASE_URL=the TRANSACTION POOLER string (port 6543)
+DIRECT_DATABASE_URL=the DIRECT or SESSION string (port 5432)
+DATABASE_SSL=true
+```
+
+Then `npm run db:check`. It should connect to Supabase and report all tables and columns.
+Run the site locally once (`npm run dev`) and log in to confirm everything works against the
+new database before deploying.
+
+### e) Put the code on GitHub
+```bash
+git add -A
+git commit -m "Ready for Vercel and Supabase"
+git push
+```
+`.env` is in `.gitignore`, so your passwords and keys are not uploaded.
+
+### f) Deploy on Vercel
+1. Sign in at vercel.com with GitHub and **Add New → Project**, then pick this repository.
+2. Leave the build settings as they are (Next.js is detected).
+3. Add the environment variables, for Production, Preview and Development:
+
+| Name | Value |
+| --- | --- |
+| `DATABASE_URL` | the transaction pooler string (port 6543) |
+| `DIRECT_DATABASE_URL` | the direct or session string (port 5432) |
+| `DATABASE_SSL` | `true` |
+| `NEXT_PUBLIC_SITE_URL` | `https://your-site.vercel.app` for now, your real domain later |
+| `SUPABASE_URL` | `https://YOUR-PROJECT.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | the service role key |
+| `SUPABASE_STORAGE_BUCKET` | `ksa-files` |
+| `RESEND_API_KEY` | your Resend key |
+| `EMAIL_FROM` | `Knowledge Space Academy <hello@yourdomain.com>` |
+| `ADMIN_NOTIFY_EMAIL` | the general alerts address |
+| `CRON_SECRET` | a long random string |
+| `NEXT_PUBLIC_ADMIN_TIMEZONE` | `Africa/Lagos` |
+
+4. Press **Deploy**. The first build takes two to three minutes.
+5. Open the address it gives you, then set `NEXT_PUBLIC_SITE_URL` to that address (or your own
+   domain once you add it under **Settings → Domains**) and redeploy, so email links and SEO
+   tags point to the right place.
+
+Once the site runs on `https://`, the login cookie automatically becomes a `__Host-` cookie,
+which is the strictest kind a browser offers.
+
+### g) After the first deployment
+- Log in at `/login` with your admin account and check **Admin → Site settings**.
+- Send a test quote request from the public form and confirm the alert email arrives.
+- Check an image and a course file still open (they now come from Supabase Storage).
+
+### Scheduled campaigns on Vercel
+`vercel.json` already asks Vercel to call `/api/cron/campaigns` every ten minutes, and Vercel
+sends your `CRON_SECRET` with it. On the **free plan Vercel only runs a cron job once a day**,
+so if you need ten-minute checks, either move to the Pro plan or use a free external scheduler
+(for example cron-job.org) calling:
+
+```
+https://your-site.com/api/cron/campaigns
+Header:  Authorization: Bearer YOUR_CRON_SECRET
+```
+
+### Two limits worth knowing on Vercel
+- **Uploads are capped at about 4.5MB per file** on Vercel's serverless functions, even though the
+  admin allows 24MB elsewhere. Large course PDFs or audio files will fail with an error. If you
+  need bigger files, say so and the upload can be changed to go straight to Supabase Storage
+  from the browser.
+- **Login attempt limits are per server instance.** The blocking of repeated failed logins still
+  works, but it counts separately on each instance Vercel starts. Moving that count into the
+  database or Upstash is a small change if it matters later.
+
+### Backups
+Supabase takes daily backups on paid plans. On the free plan, take your own with:
+
+```bash
+pg_dump --no-owner --no-privileges --file=ksa-backup.sql "YOUR_SUPABASE_DIRECT_STRING"
+```
+
+Storage files can be downloaded from the Supabase dashboard, or keep the `storage` folder copy
+you already have.
+
+## 8. Still to confirm with the client
+
+- Support email, phone, WhatsApp and social links (Admin → Site settings).
+- Advisory board photos, and real photos for the carousel if they want them.
+- Privacy policy and terms wording (placeholder pages are in place and should be reviewed).
+- Whether some courses will be paid. Payments are not built yet; "Invite only" covers paid access for now.
+
+## Folder guide
+
+```
+app/(site)        public pages            app/admin        admin dashboard
+app/(auth)        login, register...      app/learn        lesson player
+app/actions       server actions          app/api          files, cron, webhooks, exports
+components        UI pieces               lib              database, auth, email, content, storage
+drizzle           database migrations     scripts          seed and create-admin
+```
