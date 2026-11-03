@@ -419,15 +419,21 @@ which is the strictest kind a browser offers.
 - Check an image and a course file still open (they now come from Supabase Storage).
 
 ### Scheduled campaigns on Vercel
-`vercel.json` already asks Vercel to call `/api/cron/campaigns` every ten minutes, and Vercel
-sends your `CRON_SECRET` with it. On the **free plan Vercel only runs a cron job once a day**,
-so if you need ten-minute checks, either move to the Pro plan or use a free external scheduler
-(for example cron-job.org) calling:
+`vercel.json` asks Vercel to call `/api/cron/campaigns` once a day at 07:00 UTC (08:00 in Lagos),
+and Vercel sends your `CRON_SECRET` with it automatically. **Vercel's free Hobby plan only allows
+one run a day**, which is why the schedule is daily. A campaign scheduled for 2pm would therefore
+not go out until the next morning's run.
 
-```
-https://your-site.com/api/cron/campaigns
-Header:  Authorization: Bearer YOUR_CRON_SECRET
-```
+To have scheduled campaigns go out close to the time you choose, pick one of these:
+
+- **Free:** create an account at cron-job.org (or any similar scheduler), add a job that runs
+  every 10 minutes and calls
+  `https://your-site.com/api/cron/campaigns` with the header
+  `Authorization: Bearer YOUR_CRON_SECRET`. Keep the daily Vercel cron as a safety net.
+- **Paid:** move to the Vercel Pro plan, then change the schedule in `vercel.json` to
+  `"*/10 * * * *"` and redeploy.
+
+If you never schedule campaigns and always press "Send now", neither is needed.
 
 ### Two limits worth knowing on Vercel
 - **Uploads are capped at about 4.5MB per file** on Vercel's serverless functions, even though the
