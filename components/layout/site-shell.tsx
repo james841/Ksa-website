@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { OrganizationJsonLd } from "@/components/seo/json-ld";
+import { BackToTop } from "@/components/ui/back-to-top";
 
 /** Header, main area and footer shared by the homepage and every public page. */
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -15,6 +16,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <SiteFooter />
+      <BackToTop />
       <OrganizationJsonLd />
     </>
   );

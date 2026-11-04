@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { WebinarRow, type WebinarListItem } from "@/components/webinars/webinar-row";
-import { CourseCard, type CourseListItem } from "@/components/courses/course-card";
+import { type CourseListItem } from "@/components/courses/course-card";
+import { CourseRail } from "./course-rail";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { ArrowRight } from "@/components/ui/icons";
 
@@ -44,30 +45,7 @@ export function Learning({ webinars, courses }: { webinars: WebinarListItem[]; c
           </Reveal>
         </div>
 
-        {courses.length ? (
-          <div className="mt-24">
-            <Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-              <div>
-                <p className="kicker">Self-paced online courses</p>
-                <h3 className="mt-4 max-w-xl text-[1.6rem] leading-tight text-ink sm:text-[1.9rem]">
-                  Learn at your pace. Move your research forward.
-                </h3>
-              </div>
-              <Link href="/courses" className="btn btn-ghost group shrink-0 self-start sm:self-auto">
-                Browse courses <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <ul className="no-scrollbar -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:-mx-8 lg:scroll-px-8 lg:px-8">
-                {courses.slice(0, 8).map((c) => (
-                  <li key={c.id} className="w-[82%] shrink-0 snap-start sm:w-[45%] lg:w-[23.5%]">
-                    <CourseCard c={c} />
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-        ) : null}
+        {courses.length ? <CourseRail courses={courses} /> : null}
       </div>
     </section>
   );
