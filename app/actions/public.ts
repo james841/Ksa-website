@@ -72,7 +72,7 @@ export async function submitQuote(_prev: ActionState, fd: FormData): Promise<Act
       sendQuoteReceipt(d.email, d.name, reference, d.service),
       notifyTeam({
         event: "quote",
-        subject: `New quote request: ${row.service} (${row.reference})`,
+        subject: `New service request: ${row.service} (${row.reference})`,
         headline: `${row.name} asked about ${row.service}`,
         rows: [
           ["Reference", row.reference],

@@ -23,7 +23,7 @@ export type Section = (typeof SECTIONS)[number];
 
 export const SECTION_LABELS: Record<Section, string> = {
   overview: "Dashboard",
-  quotes: "Quote requests",
+  quotes: "Service requests",
   users: "Users",
   subscribers: "Subscribers",
   webinars: "Webinars",
@@ -57,7 +57,7 @@ export const ROLE_INFO: Record<StaffRole, { label: string; description: string; 
   },
   support: {
     label: "Support",
-    description: "Answers quote requests and helps users and subscribers.",
+    description: "Answers service requests and helps users and subscribers.",
     sections: ["overview", "quotes", "users", "subscribers"],
   },
   marketing: {

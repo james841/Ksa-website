@@ -7,7 +7,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { sql } from "drizzle-orm";
 import * as schema from "../lib/db/schema";
-import { defaultBoard, defaultFaqs, plannedCourses, services } from "../lib/content";
+import { defaultBoard, defaultFaqs, homeHighlights, plannedCourses } from "../lib/content";
 import { defaultSettings } from "../lib/settings-types";
 import { createAdmin } from "./create-admin";
 import { describeDbError } from "../lib/db/errors";
@@ -37,7 +37,7 @@ async function main() {
   }
   if (await isEmpty("home_slides")) {
     await db.insert(schema.homeSlides).values(
-      services.map((s, i) => ({ title: s.title, caption: s.short, href: `/services/${s.slug}`, image: s.image, position: i })),
+      homeHighlights.map((h, i) => ({ title: h.title, caption: h.caption, href: h.href, image: h.image, position: i })),
     );
     console.log("✓ homepage carousel slides");
   }

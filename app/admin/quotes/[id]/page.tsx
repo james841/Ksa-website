@@ -37,7 +37,7 @@ export default async function QuoteDetail({ params }: PageProps<"/admin/quotes/[
   return (
     <>
       <PageHeader
-        back={{ href: "/admin/quotes", label: "All quote requests" }}
+        back={{ href: "/admin/quotes", label: "All service requests" }}
         title={q.name}
         description={
           <span className="flex flex-wrap items-center gap-2">

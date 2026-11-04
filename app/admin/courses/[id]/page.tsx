@@ -30,7 +30,7 @@ export default async function EditCourse({ params, searchParams }: PageProps<"/a
   const [c] = await db.select().from(schema.courses).where(eq(schema.courses.id, id)).limit(1);
   if (!c) notFound();
 
-  const [modules, lessons, learners, [{ waiting }]] = await Promise.all([
+  const [modules, lessons, learners, [{ waiting }], payments] = await Promise.all([
     db.select().from(schema.courseModules).where(eq(schema.courseModules.courseId, id)).orderBy(asc(schema.courseModules.position)),
     db
       .select({
@@ -61,8 +61,26 @@ export default async function EditCourse({ params, searchParams }: PageProps<"/a
       .where(eq(schema.enrollments.courseId, id))
       .orderBy(desc(schema.enrollments.createdAt)),
     db.select({ waiting: sql<number>`count(*)::int` }).from(schema.courseInterest).where(eq(schema.courseInterest.courseId, id)),
+    db
+      .select({
+        id: schema.payments.id,
+        reference: schema.payments.reference,
+        status: schema.payments.status,
+        amountCents: schema.payments.amountCents,
+        currency: schema.payments.currency,
+        createdAt: schema.payments.createdAt,
+        paidAt: schema.payments.paidAt,
+        name: schema.users.name,
+        email: schema.users.email,
+      })
+      .from(schema.payments)
+      .innerJoin(schema.users, eq(schema.users.id, schema.payments.userId))
+      .where(eq(schema.payments.courseId, id))
+      .orderBy(desc(schema.payments.createdAt))
+      .limit(20),
   ]);
   const publishedLessons = lessons.filter((l) => l.published).length;
+  const money = (cents: number, currency: string) => new Intl.NumberFormat("en-ZA", { style: "currency", currency }).format(cents / 100);
 
   return (
     <>
@@ -232,6 +250,34 @@ export default async function EditCourse({ params, searchParams }: PageProps<"/a
           )}
         </Panel>
         <div className="space-y-6">
+          {c.priceCents > 0 ? (
+            <Panel
+              title="Payments"
+              description={`${money(c.priceCents, c.currency)} per place. Paid through PayFast; access is given automatically once PayFast confirms.`}
+              pad={false}
+            >
+              {payments.length ? (
+                <ul className="divide-y divide-line">
+                  {payments.map((pay) => (
+                    <li key={pay.id} className="flex items-center gap-3 px-6 py-3">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-ink">{pay.name}</span>
+                        <span className="block truncate text-xs text-muted">
+                          {pay.reference} · {formatDate(pay.paidAt ?? pay.createdAt, true)}
+                        </span>
+                      </span>
+                      <span className="whitespace-nowrap text-sm font-semibold text-ink">{money(pay.amountCents, pay.currency)}</span>
+                      <Badge value={pay.status === "paid" ? "published" : pay.status === "pending" ? "draft" : "cancelled"} label={pay.status} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="p-6">
+                  <EmptyState title="No payments yet" text="Payments appear here as soon as someone buys a place." />
+                </div>
+              )}
+            </Panel>
+          ) : null}
           <Panel title="Give people access" description="Paste one or more emails of people who already have an account.">
             <AdminForm action={grantCourseAccessByEmail} resetOnSuccess successTitle="Access granted">
               <input suppressHydrationWarning type="hidden" name="courseId" value={c.id} />

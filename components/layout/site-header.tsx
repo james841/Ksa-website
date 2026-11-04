@@ -4,7 +4,7 @@ import { DataSaverToggle } from "@/components/ui/data-saver-toggle";
 import { getSettings } from "@/lib/data/public";
 import { getCurrentUser } from "@/lib/auth/session";
 import { HeaderClient } from "./header-client";
-import { ArrowRight, Mail, Phone, Pin, WhatsApp, Facebook, XLogo, LinkedIn, Instagram, YouTube } from "@/components/ui/icons";
+import { ArrowRight, Mail, Phone, Pin, WhatsApp, Facebook, XLogo, LinkedIn, Instagram, YouTube, TikTok } from "@/components/ui/icons";
 
 export async function SiteHeader() {
   const settings = await getSettings();
@@ -15,6 +15,7 @@ export async function SiteHeader() {
     { href: s.linkedin, label: "LinkedIn", Icon: LinkedIn },
     { href: s.instagram, label: "Instagram", Icon: Instagram },
     { href: s.youtube, label: "YouTube", Icon: YouTube },
+    { href: s.tiktok, label: "TikTok", Icon: TikTok },
   ].filter((x) => x.href);
 
   return (

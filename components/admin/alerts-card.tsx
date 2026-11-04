@@ -9,7 +9,7 @@ import { Mail } from "@/components/ui/icons";
  * The list comes from their role, so it always matches what they can open.
  */
 const WATCHED: Partial<Record<Section, string>> = {
-  quotes: "New quote requests",
+  quotes: "New service requests",
   users: "New accounts",
   subscribers: "New email subscribers",
   webinars: "New webinar registrations",

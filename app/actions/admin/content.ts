@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db, schema } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import type { SiteSettings } from "@/lib/settings-types";
+import { homeHighlights } from "@/lib/content";
 import type { ActionState } from "@/lib/validation";
 import { bool, errMsg, guard, imageFromForm, str } from "./helpers";
 
@@ -25,6 +26,7 @@ export async function saveSettings(_p: ActionState, fd: FormData): Promise<Actio
     linkedin: str(fd, "linkedin"),
     instagram: str(fd, "instagram"),
     youtube: str(fd, "youtube"),
+    tiktok: str(fd, "tiktok"),
   };
   for (const v of Object.values(socials)) {
     const r = urlOrEmpty.safeParse(v);
@@ -182,6 +184,24 @@ export async function deleteSlide(fd: FormData) {
 export async function moveSlide(fd: FormData) {
   await guard("content");
   await move(schema.homeSlides, str(fd, "id"), str(fd, "dir"));
+  updateTag("slides");
+  refresh();
+}
+
+/**
+ * Replaces every card in the homepage carousel with the recommended set: one
+ * card for each main part of the website (services, webinars, courses,
+ * publishing, institutions, individuals). Useful after the site structure
+ * changes, and everything can still be edited by hand afterwards.
+ */
+export async function resetSlides(fd: FormData) {
+  const admin = await guard("content");
+  void fd;
+  await db.delete(schema.homeSlides);
+  await db.insert(schema.homeSlides).values(
+    homeHighlights.map((h, i) => ({ title: h.title, caption: h.caption, href: h.href, image: h.image, position: i })),
+  );
+  await audit(admin.id, "reset", "home_slides", null, { count: homeHighlights.length });
   updateTag("slides");
   refresh();
 }

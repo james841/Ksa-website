@@ -12,7 +12,7 @@ import { sendTeamAlert } from "@/lib/email/templates";
  *      ADMIN_NOTIFY_EMAIL in .env), so nothing is ever missed, and
  *   2. each team member whose role covers that part and who has alerts on.
  *
- * So a quote request reaches Support, a new enrolment reaches the Course
+ * So a service request reaches Support, a new enrolment reaches the Course
  * manager, and a new subscriber reaches Marketing, without anyone being
  * copied on work that is not theirs.
  */
@@ -40,7 +40,7 @@ const SECTION_OF: Record<NotifyEvent, Section> = {
 
 export type Alert = {
   event: NotifyEvent;
-  /** Email subject, e.g. "New quote request: Data analysis". */
+  /** Email subject, e.g. "New service request: Data analysis". */
   subject: string;
   /** One line at the top of the email. */
   headline: string;

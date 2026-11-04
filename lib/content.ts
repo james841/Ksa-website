@@ -407,5 +407,57 @@ export const quoteServiceOptions = [
   "Something else",
 ];
 
+/**
+ * The cards in the homepage carousel.
+ *
+ * These point at the main parts of the website rather than at single services,
+ * so the row works as a signpost: where can I go from here? The admin can edit,
+ * reorder, hide or replace every card in Admin > Homepage carousel.
+ */
+export const homeHighlights = [
+  {
+    id: "services",
+    title: "Research services",
+    caption: "Topic, design, analysis, chapters, editing and publication support.",
+    href: "/services",
+    image: "/images/services/design-blue.webp",
+  },
+  {
+    id: "webinars",
+    title: "Free monthly webinars",
+    caption: "Live sessions on Zoom, every month, open to everyone.",
+    href: "/webinars",
+    image: "/images/services/topic-blue.webp",
+  },
+  {
+    id: "courses",
+    title: "Self-paced online courses",
+    caption: "Short courses you can take at your own pace, on your own time.",
+    href: "/courses",
+    image: "/images/services/proposal-blue.webp",
+  },
+  {
+    id: "publishing",
+    title: "Publishing and conferences",
+    caption: "Journal support, our partner journal and scholarly events.",
+    href: "/publishing",
+    image: "/images/services/manuscript-blue.webp",
+  },
+  {
+    id: "institutions",
+    title: "For institutions",
+    caption: "Mentorship programmes, writing retreats and research training.",
+    href: "/institutions",
+    image: "/images/services/chapters-blue.webp",
+  },
+  {
+    id: "individuals",
+    title: "For individuals",
+    caption: "One-to-one support for postgraduate students and researchers.",
+    href: "/services",
+    image: "/images/services/qualitative-blue.webp",
+  },
+];
+
 export const marketingConsentText =
   "I would like to receive research tips, webinar announcements, course updates and other emails from Knowledge Space Academy. I can unsubscribe at any time.";

@@ -5,7 +5,7 @@ import { services } from "@/lib/content";
 import { Logo } from "./logo";
 import { DataSaverToggle } from "@/components/ui/data-saver-toggle";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
-import { Mail, Phone, Pin, WhatsApp } from "@/components/ui/icons";
+import { Facebook, Instagram, LinkedIn, Mail, Phone, Pin, TikTok, WhatsApp, XLogo, YouTube } from "@/components/ui/icons";
 
 const explore = [
   { label: "About us", href: "/about" },
@@ -19,6 +19,15 @@ const explore = [
 
 export async function SiteFooter() {
   const settings = await getSettings();
+  const so = settings.socials;
+  const socials = [
+    { href: so.linkedin, label: "LinkedIn", Icon: LinkedIn },
+    { href: so.instagram, label: "Instagram", Icon: Instagram },
+    { href: so.facebook, label: "Facebook", Icon: Facebook },
+    { href: so.tiktok, label: "TikTok", Icon: TikTok },
+    { href: so.x, label: "X", Icon: XLogo },
+    { href: so.youtube, label: "YouTube", Icon: YouTube },
+  ].filter((x) => x.href);
   return (
     <footer className="relative overflow-hidden bg-ink text-white">
       <svg aria-hidden className="pointer-events-none absolute -right-40 -top-24 w-[900px] opacity-[0.07]" viewBox="0 0 900 400" fill="none">
@@ -34,6 +43,23 @@ export async function SiteFooter() {
             <p className="mb-3 font-display text-xl">Get webinar and course news</p>
             <NewsletterForm source="footer" />
           </div>
+          {socials.length ? (
+            <ul className="mt-8 flex flex-wrap items-center gap-2.5">
+              {socials.map(({ href, label, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    aria-label={label}
+                    target="_blank"
+                    rel="noopener"
+                    className="grid size-10 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white hover:text-ink"
+                  >
+                    <Icon size={17} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
         <div className="lg:col-span-3">
           <p className="mb-4 font-semibold">Research services</p>
@@ -89,8 +115,8 @@ export async function SiteFooter() {
               </li>
             ) : null}
             <li>
-              <Link href="/request-a-quote" className="btn btn-primary btn-sm mt-2">
-                Request a quote
+              <Link href="/request-a-service" className="btn btn-primary btn-sm mt-2">
+                Request a service
               </Link>
             </li>
           </ul>

@@ -68,7 +68,7 @@ export function Hero({ badge, slides, image }: { badge: string; slides: Slide[];
             Explore our services
             <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
           </Link>
-          <Link href="/request-a-quote" className="btn btn-light w-full px-7 py-3.5 text-[0.95rem] sm:w-auto">
+          <Link href="/request-a-service" className="btn btn-light w-full px-7 py-3.5 text-[0.95rem] sm:w-auto">
             Discuss your research needs
           </Link>
         </m.div>

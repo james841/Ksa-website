@@ -130,7 +130,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {c("quotes") ? <StatCard tone="blue" label="New quote requests" value={quotesNew.n} hint={`${quotesOpen.n} in progress`} href="/admin/quotes?status=new" /> : null}
+        {c("quotes") ? <StatCard tone="blue" label="New service requests" value={quotesNew.n} hint={`${quotesOpen.n} in progress`} href="/admin/quotes?status=new" /> : null}
         {c("users") ? <StatCard label="Registered users" value={users.n} hint={`${newUsers.n} joined in the last 7 days`} href="/admin/users" /> : null}
         {c("subscribers") ? <StatCard label="Email subscribers" value={subs.n} hint="People who opted in to marketing" href="/admin/subscribers" /> : null}
         {c("courses") ? <StatCard tone="mist" label="Course enrolments" value={enrolled.n} hint="Across all courses" href="/admin/courses" /> : null}
@@ -162,7 +162,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
         ) : null}
 
         {c("quotes") ? (
-        <Panel title="Follow-ups due" description="Quote requests with a reminder in the next 2 days">
+        <Panel title="Follow-ups due" description="Service requests with a reminder in the next 2 days">
           {followUps.length ? (
             <ul className="divide-y divide-line">
               {followUps.map((f) => (
@@ -178,7 +178,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
               ))}
             </ul>
           ) : (
-            <p className="py-6 text-center text-sm text-muted">Nothing due. Set a follow-up date on any quote request to see it here.</p>
+            <p className="py-6 text-center text-sm text-muted">Nothing due. Set a follow-up date on any service request to see it here.</p>
           )}
         </Panel>
         ) : null}
@@ -187,7 +187,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         {c("quotes") ? (
         <Panel
-          title="Latest quote requests"
+          title="Latest service requests"
           pad={false}
           actions={
             <Link href="/admin/quotes" className="inline-flex items-center gap-1 text-sm font-semibold text-blue">

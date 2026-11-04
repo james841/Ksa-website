@@ -13,7 +13,7 @@ import type { ActionState } from "@/lib/validation";
 import { subscribe, unsubscribeByToken } from "@/lib/subscriptions";
 import { bool, errMsg, guard, str } from "./helpers";
 
-/* ───────────── Quote requests ───────────── */
+/* ───────────── Service requests ───────────── */
 
 const quoteStatuses = ["new", "in_progress", "responded", "closed"] as const;
 

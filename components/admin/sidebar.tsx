@@ -17,7 +17,7 @@ const groups = [
   {
     label: "People",
     items: [
-      { href: "/admin/quotes", label: "Quote requests", Icon: Inbox, badge: "quotes" as const },
+      { href: "/admin/quotes", label: "Service requests", Icon: Inbox, badge: "quotes" as const },
       { href: "/admin/users", label: "Users", Icon: Users },
       { href: "/admin/subscribers", label: "Subscribers", Icon: Send },
     ],

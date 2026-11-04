@@ -3,7 +3,7 @@ import Image from "next/image";
 import { asc } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/session";
-import { deleteSlide, moveSlide, saveSlide } from "@/app/actions/admin/content";
+import { deleteSlide, moveSlide, resetSlides, saveSlide } from "@/app/actions/admin/content";
 import { ActionButton, AdminForm, ConfirmAction, ImageField } from "@/components/admin/forms";
 import { Badge, PageHeader, Panel } from "@/components/admin/ui";
 import { SubmitButton } from "@/components/forms/fields";
@@ -57,7 +57,16 @@ export default async function SlidesPage() {
       <PageHeader
         back={{ href: "/admin/content", label: "Site settings" }}
         title="Homepage carousel"
-        description="The curved 3D row of cards under the hero. Eight or more cards fill the curve best; fewer are repeated automatically."
+        description="The curved 3D row of cards under the hero. These cards point visitors to the main parts of the website. Eight or more fill the curve best; fewer are repeated automatically."
+        actions={
+          <ConfirmAction
+            action={resetSlides}
+            tone="dark"
+            label="Use the recommended cards"
+            confirmLabel="Replace all cards"
+            success="Carousel reset to the recommended cards"
+          />
+        }
       />
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <Panel title={`Cards (${slides.length})`}>

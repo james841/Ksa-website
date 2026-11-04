@@ -62,6 +62,8 @@ export async function saveCourse(_p: ActionState, fd: FormData): Promise<ActionS
       instructorBio: optional(fd, "instructorBio"),
       position: int(fd, "position") ?? 0,
       lowData: bool(fd, "lowData"),
+      // Money is kept in cents so there is never a rounding surprise.
+      priceCents: Math.max(0, Math.round((Number.parseFloat(str(fd, "price")) || 0) * 100)),
       coverImage: await imageFromForm(fd, "coverImage", admin.id, 1600),
     };
     if (id) {

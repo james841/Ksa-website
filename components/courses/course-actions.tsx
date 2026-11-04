@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { enrollInCourse, notifyMeAboutCourse } from "@/app/actions/learning";
+import { startCoursePayment } from "@/app/actions/payments";
 import { FormAlert, SubmitButton } from "@/components/forms/fields";
 import type { ActionState } from "@/lib/validation";
 
@@ -24,6 +25,18 @@ export function NotifyButton({ slug, already }: { slug: string; already: boolean
         Notify me when it opens
       </SubmitButton>
       <FormAlert state={state} />
+    </form>
+  );
+}
+
+/** Sends the learner to PayFast through the checkout page. */
+export function PayButton({ slug, label }: { slug: string; label: string }) {
+  return (
+    <form action={startCoursePayment.bind(null, slug)} className="space-y-3">
+      <SubmitButton className="w-full py-3.5" pendingText="Opening PayFast…">
+        {label}
+      </SubmitButton>
+      <p className="text-center text-xs text-muted">Secure card payment handled by PayFast.</p>
     </form>
   );
 }

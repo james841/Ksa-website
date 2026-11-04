@@ -67,8 +67,8 @@ export default async function SettingsPage() {
           <Panel title="Contact details" description="Shown in the header, footer and contact page. Leave a field empty to hide it.">
             <div className="space-y-5">
               <F name="supportEmail" label="Support email" type="email" value={s.supportEmail} placeholder="hello@knowledgespaceacademy.com" />
-              <F name="phone" label="Phone" value={s.phone} placeholder="+234 …" />
-              <F name="whatsapp" label="WhatsApp number" value={s.whatsapp} placeholder="+2348012345678" hint="International format. Adds a WhatsApp chat button." />
+              <F name="phone" label="Phone" value={s.phone} placeholder="+27 …" />
+              <F name="whatsapp" label="WhatsApp number" value={s.whatsapp} placeholder="+27821234567" hint="International format. Adds a WhatsApp chat button." />
               <F name="address" label="Address or location" value={s.address} placeholder="e.g. Johannesburg, South Africa and Ibadan, Nigeria" />
             </div>
           </Panel>
@@ -79,9 +79,10 @@ export default async function SettingsPage() {
               <F name="linkedin" label="LinkedIn" type="url" value={s.socials.linkedin} />
               <F name="instagram" label="Instagram" type="url" value={s.socials.instagram} />
               <F name="youtube" label="YouTube" type="url" value={s.socials.youtube} />
+              <F name="tiktok" label="TikTok" type="url" value={s.socials.tiktok} />
             </div>
           </Panel>
-          <Panel title="Alerts email" description="Where a copy of every admin alert is sent: new quote requests, registrations, enrolments, subscribers and campaign results.">
+          <Panel title="Alerts email" description="Where a copy of every admin alert is sent: new service requests, registrations, enrolments, subscribers and campaign results.">
             <F
               name="notifyEmail"
               label="General alerts email"

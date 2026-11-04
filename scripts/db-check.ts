@@ -9,7 +9,7 @@ const expected = [
   "users", "sessions", "auth_tokens", "email_subscriptions", "consent_events", "quote_requests", "quote_notes", "media",
   "webinars", "webinar_registrations", "courses", "course_modules", "lessons", "lesson_resources", "enrollments",
   "lesson_progress", "course_interest", "email_campaigns", "campaign_recipients", "site_settings", "faqs", "board_members",
-  "home_slides", "audit_logs", "staff_invites",
+  "home_slides", "audit_logs", "staff_invites", "payments",
 ];
 
 /** Columns added after the first release. Missing ones mean a migration has not been run. */
@@ -17,6 +17,7 @@ const expectedColumns: Array<[string, string]> = [
   ["users", "staff_role"],
   ["users", "notify_by_email"],
   ["courses", "low_data"],
+  ["courses", "price_cents"],
 ];
 
 async function main() {

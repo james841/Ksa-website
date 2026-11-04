@@ -23,7 +23,7 @@ export default function InstitutionsPage() {
         title="Research development services shaped around your organisation"
         lead="KSA partners with universities, research institutions, corporate organisations and professional bodies to strengthen research capacity and support postgraduate development. Each engagement is shaped around your priorities, your participants' experience and the outcomes you want."
       >
-        <Link href="/request-a-quote?service=Doctoral%20Mentorship%20Programmes" className="btn btn-light group mt-8">
+        <Link href="/request-a-service?service=Doctoral%20Mentorship%20Programmes" className="btn btn-light group mt-8">
           Discuss a programme <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
         </Link>
       </PageHero>

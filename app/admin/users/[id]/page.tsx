@@ -173,7 +173,7 @@ export default async function UserDetail({ params }: PageProps<"/admin/users/[id
           </Panel>
 
           {quotes.length ? (
-            <Panel title="Quote requests">
+            <Panel title="Service requests">
               <ul className="space-y-2">
                 {quotes.map((q) => (
                   <li key={q.id}>

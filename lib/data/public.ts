@@ -168,6 +168,8 @@ export async function getPublicCourses() {
         status: schema.courses.status,
         enrollmentMode: schema.courses.enrollmentMode,
         lowData: schema.courses.lowData,
+        priceCents: schema.courses.priceCents,
+        currency: schema.courses.currency,
         lessonCount: sql<number>`(select count(*)::int from lessons l where l.course_id = "courses"."id" and l.published)`,
       })
       .from(schema.courses)

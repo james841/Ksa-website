@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { PageHero } from "@/components/ui/page-hero";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { ArrowUpRight } from "@/components/ui/icons";
+import { Reveal } from "@/components/motion/reveal";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { getBoard } from "@/lib/data/public";
-import { initials } from "@/lib/utils";
+import { AdvisoryBoard } from "@/components/about/advisory-board";
+import { JOURNAL_NAME, JOURNAL_URL } from "@/lib/nav";
 import manuscript from "@/public/images/services/manuscript-blue.webp";
 
 export const metadata: Metadata = {
@@ -35,9 +37,14 @@ export default async function PublishingPage() {
               advancing interdisciplinary scholarship and providing opportunities for research to contribute to wider academic
               conversations.
             </p>
-            <Link href="/services/journal-manuscript-support" className="btn btn-dark mt-8">
-              Get journal manuscript support
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href={JOURNAL_URL} target="_blank" rel="noopener" className="btn btn-primary group">
+                Visit the journal <ArrowUpRight size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
+              <Link href="/services/journal-manuscript-support" className="btn btn-ghost">
+                Get manuscript support
+              </Link>
+            </div>
           </Reveal>
           <Reveal delay={0.1}>
             <div className="relative mx-auto aspect-[4/5] max-w-md overflow-hidden rounded-[1.8rem] shadow-lift">
@@ -47,7 +54,54 @@ export default async function PublishingPage() {
         </div>
       </section>
 
-      <section className="bg-ink py-20 text-white sm:py-24">
+      {/* The partner journal, with the facts a reader needs before clicking through. */}
+      <section id="journal" className="scroll-mt-28 bg-mist py-20 sm:py-24" aria-labelledby="journal-title">
+        <div className="container-x">
+          <Reveal className="max-w-2xl">
+            <p className="kicker">Our partner journal</p>
+            <h2 id="journal-title" className="mt-4 section-title">
+              {JOURNAL_NAME}
+            </h2>
+            <p className="section-lead">
+              A peer-reviewed, open access journal published by the University of Johannesburg. It carries research articles across
+              the humanities, social sciences and science-related fields, along with shorter commentaries on topical issues, and
+              welcomes work that challenges dominant narratives.
+            </p>
+          </Reveal>
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {[
+              ["Open access", "Every article is free to read, with no paywall for readers anywhere."],
+              ["Peer reviewed", "Submissions are reviewed by scholars in the field before publication."],
+              ["Submissions are open", "Read the author guidelines on the journal site, then submit your work."],
+            ].map(([title, text]) => (
+              <Reveal key={title}>
+                <div className="h-full rounded-[1.4rem] bg-white p-7 ring-1 ring-line">
+                  <span aria-hidden className="block h-[2px] w-10 bg-blue" />
+                  <p className="mt-5 font-display text-xl text-ink">{title}</p>
+                  <p className="mt-2 leading-relaxed text-muted">{text}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={0.1}>
+            <div className="mt-8 flex flex-col items-start justify-between gap-5 rounded-[1.5rem] bg-ink p-7 text-white sm:flex-row sm:items-center sm:p-8">
+              <div>
+                <p className="font-display text-xl leading-snug">Read the journal, or submit your article</p>
+                <p className="mt-1.5 text-white/70">
+                  Hosted by the University of Johannesburg. ISSN 3105-3300 (online). The link opens in a new tab.
+                </p>
+              </div>
+              <a href={JOURNAL_URL} target="_blank" rel="noopener" className="btn btn-light group shrink-0">
+                journals.uj.ac.za <ArrowUpRight size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="conferences" className="scroll-mt-28 bg-ink py-20 text-white sm:py-24">
         <div className="container-x grid gap-12 lg:grid-cols-12">
           <Reveal className="lg:col-span-7">
             <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-blue-100">Coming soon</p>
@@ -77,29 +131,7 @@ export default async function PublishingPage() {
         </div>
       </section>
 
-      <section className="bg-white py-20 sm:py-24" aria-labelledby="board-title">
-        <div className="container-x">
-          <Reveal>
-            <p className="kicker">Governance</p>
-            <h2 id="board-title" className="mt-4 text-[clamp(1.9rem,3.8vw,2.8rem)] leading-[1.1] text-ink">
-              Knowledge Space Academy Advisory Board
-            </h2>
-          </Reveal>
-          <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {board.map((b) => (
-              <RevealItem key={b.id} className="rounded-[1.4rem] bg-mist p-7 ring-1 ring-line">
-                {b.photo ? (
-                  <Image src={b.photo} alt={b.name} width={88} height={88} className="size-22 rounded-full object-cover" />
-                ) : (
-                  <span className="grid size-20 place-items-center rounded-full bg-ink font-display text-2xl text-white">{initials(b.name)}</span>
-                )}
-                <p className="mt-6 font-display text-xl text-ink">{b.name}</p>
-                <p className="mt-1 text-muted">{b.affiliation}</p>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </div>
-      </section>
+      <AdvisoryBoard board={board} tone="white" />
     </>
   );
 }

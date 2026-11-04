@@ -55,8 +55,8 @@ async function ServiceContent({ params }: Pick<PageProps<"/services/[slug]">, "p
               <h1 className="mt-4 text-[clamp(2.1rem,4.8vw,3.6rem)] font-bold leading-[1.12] tracking-[-0.03em] text-ink">{s.title}</h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">{s.intro[0]}</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href={`/request-a-quote?service=${encodeURIComponent(s.title)}`} className="btn btn-primary group">
-                  Request a quote <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
+                <Link href={`/request-a-service?service=${encodeURIComponent(s.title)}`} className="btn btn-primary group">
+                  Request a service <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link href="/contact" className="btn btn-ghost bg-white/60">
                   Ask a question
@@ -122,8 +122,8 @@ async function ServiceContent({ params }: Pick<PageProps<"/services/[slug]">, "p
                 <p className="mt-3 text-sm leading-relaxed text-white/70">
                   Share your requirements, guidelines and timeline. We will reply with a clear plan of support and a quote.
                 </p>
-                <Link href={`/request-a-quote?service=${encodeURIComponent(s.title)}`} className="btn btn-light mt-6 w-full">
-                  Request a quote
+                <Link href={`/request-a-service?service=${encodeURIComponent(s.title)}`} className="btn btn-light mt-6 w-full">
+                  Request a service
                 </Link>
                 <ul className="mt-6 space-y-2 text-sm text-white/75">
                   {["Experienced team", "Affordable pricing", "Zero plagiarism policy"].map((t) => (

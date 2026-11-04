@@ -44,7 +44,7 @@ export function QuoteForm({ defaultService = "" }: { defaultService?: string }) 
       <Field label="Full name" name="name" required autoComplete="name" defaultValue={d.name} error={e.name} />
       <Field label="Email address" name="email" type="email" required autoComplete="email" defaultValue={d.email} error={e.email} />
       <Field label="Country or location" name="country" required autoComplete="country-name" defaultValue={d.country} error={e.country} />
-      <Field label="Phone number" name="phone" type="tel" required autoComplete="tel" placeholder="+234 800 000 0000" defaultValue={d.phone} error={e.phone} hint="Include your country code. WhatsApp numbers are welcome." />
+      <Field label="Phone number" name="phone" type="tel" required autoComplete="tel" placeholder="+27 82 123 4567" defaultValue={d.phone} error={e.phone} hint="Include your country code. WhatsApp numbers are welcome." />
       <Select
         className="sm:col-span-2"
         label="Selected service"

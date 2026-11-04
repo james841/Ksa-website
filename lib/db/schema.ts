@@ -29,6 +29,8 @@ export const courseLevel = pgEnum("course_level", ["all", "beginner", "intermedi
 export const enrollmentMode = pgEnum("enrollment_mode", ["open", "invite"]);
 export const enrollmentSource = pgEnum("enrollment_source", ["self", "admin"]);
 export const mediaVisibility = pgEnum("media_visibility", ["public", "private"]);
+// Course payments taken through PayFast.
+export const paymentStatus = pgEnum("payment_status", ["pending", "paid", "failed", "cancelled"]);
 export const campaignAudience = pgEnum("campaign_audience", [
   "all_subscribers",
   "webinar_registrants",
@@ -297,6 +299,9 @@ export const courses = pgTable(
     enrollmentMode: enrollmentMode("enrollment_mode").default("open").notNull(),
     // "Low data friendly": every lesson can be followed with text notes or audio, without video.
     lowData: boolean("low_data").default(false).notNull(),
+    // Price in cents (so 35000 is R350.00). Zero means the course is free.
+    priceCents: integer("price_cents").default(0).notNull(),
+    currency: text("currency").default("ZAR").notNull(),
     position: integer("position").default(0).notNull(),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     ...timestamps,
@@ -491,6 +496,35 @@ export const homeSlides = pgTable("home_slides", {
   published: boolean("published").default(true).notNull(),
 });
 
+/**
+ * One row per attempt to pay for a course. The row is created before the
+ * learner is sent to PayFast, and completed when PayFast tells us the payment
+ * went through, so nothing depends on the learner coming back to the website.
+ */
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    reference: text("reference").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").default("ZAR").notNull(),
+    status: paymentStatus("status").default("pending").notNull(),
+    provider: text("provider").default("payfast").notNull(),
+    providerPaymentId: text("provider_payment_id"),
+    email: text("email"),
+    raw: jsonb("raw"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("payments_reference_idx").on(t.reference), index("payments_course_idx").on(t.courseId), index("payments_user_idx").on(t.userId)],
+);
+
 export const auditLogs = pgTable(
   "audit_logs",
   {
@@ -511,3 +545,4 @@ export type Course = typeof courses.$inferSelect;
 export type Lesson = typeof lessons.$inferSelect;
 export type QuoteRequest = typeof quoteRequests.$inferSelect;
 export type EmailCampaign = typeof emailCampaigns.$inferSelect;
+export type Payment = typeof payments.$inferSelect;

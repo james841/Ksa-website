@@ -8,7 +8,8 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { db, schema } from "@/lib/db";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Cover } from "@/components/ui/cover";
-import { EnrollButton, NotifyButton } from "@/components/courses/course-actions";
+import { EnrollButton, NotifyButton, PayButton } from "@/components/courses/course-actions";
+import { formatPrice, paymentsEnabled } from "@/lib/payments/payfast";
 import { JsonLd } from "@/components/seo/json-ld";
 import { markdownToHtml } from "@/lib/email";
 import { Book, Check, Clock, Lock, Play } from "@/components/ui/icons";
@@ -137,16 +138,23 @@ async function CourseDetail({ params }: Pick<PageProps<"/courses/[slug]">, "para
           </div>
           <aside className="lg:col-span-5">
             <div className="sticky top-28 rounded-[1.5rem] bg-white p-7 shadow-lift ring-1 ring-line">
-              <p className="font-display text-2xl text-ink">{soon ? "This course is coming soon" : "Start learning today"}</p>
+              {!soon && c.priceCents > 0 ? (
+                <p className="mb-1 font-display text-[2.1rem] leading-none text-ink">{formatPrice(c.priceCents, c.currency)}</p>
+              ) : null}
+              <p className="font-display text-2xl text-ink">
+                {soon ? "This course is coming soon" : c.priceCents > 0 ? "Pay once, keep access" : "Start learning today"}
+              </p>
               <p className="mb-6 mt-2 text-sm text-muted">
                 {soon
                   ? "Final offerings and enrolment details will be announced ahead of launch. Ask to be notified and we will email you first."
-                  : c.enrollmentMode === "open"
-                    ? "Enrol with your free KSA account and learn at your own pace. Your progress is saved automatically."
-                    : "Access to this course is arranged by KSA. Contact us to request a place."}
+                  : c.priceCents > 0
+                    ? "One payment through PayFast. Your place is confirmed as soon as the payment goes through, and your progress is saved as you learn."
+                    : c.enrollmentMode === "open"
+                      ? "Enrol with your free KSA account and learn at your own pace. Your progress is saved automatically."
+                      : "Access to this course is arranged by KSA. Contact us to request a place."}
               </p>
               <Suspense fallback={<div className="h-12 animate-pulse rounded-full bg-mist" />}>
-                <CourseAccess courseId={c.id} slug={c.slug} soon={soon} mode={c.enrollmentMode} />
+                <CourseAccess courseId={c.id} slug={c.slug} soon={soon} mode={c.enrollmentMode} priceCents={c.priceCents} currency={c.currency} />
               </Suspense>
             </div>
           </aside>
@@ -165,9 +173,12 @@ async function CourseDetail({ params }: Pick<PageProps<"/courses/[slug]">, "para
           ...(soon
             ? {}
             : {
-                isAccessibleForFree: c.enrollmentMode === "open",
+                isAccessibleForFree: c.priceCents === 0 && c.enrollmentMode === "open",
                 hasCourseInstance: { "@type": "CourseInstance", courseMode: "online", courseWorkload: c.durationLabel ?? undefined },
-                offers: { "@type": "Offer", category: c.enrollmentMode === "open" ? "Free" : "Partner", price: 0, priceCurrency: "USD" },
+                offers:
+                  c.priceCents > 0
+                    ? { "@type": "Offer", category: "Paid", price: (c.priceCents / 100).toFixed(2), priceCurrency: c.currency }
+                    : { "@type": "Offer", category: c.enrollmentMode === "open" ? "Free" : "Partner", price: 0, priceCurrency: c.currency },
               }),
         }}
       />
@@ -175,7 +186,21 @@ async function CourseDetail({ params }: Pick<PageProps<"/courses/[slug]">, "para
   );
 }
 
-async function CourseAccess({ courseId, slug, soon, mode }: { courseId: string; slug: string; soon: boolean; mode: string }) {
+async function CourseAccess({
+  courseId,
+  slug,
+  soon,
+  mode,
+  priceCents,
+  currency,
+}: {
+  courseId: string;
+  slug: string;
+  soon: boolean;
+  mode: string;
+  priceCents: number;
+  currency: string;
+}) {
   const user = await getCurrentUser();
   const next = encodeURIComponent(`/courses/${slug}`);
   if (!user) {
@@ -208,6 +233,16 @@ async function CourseAccess({ courseId, slug, soon, mode }: { courseId: string; 
         {enr.completedAt ? "Review the course" : "Continue learning"}
       </Link>
     );
+  }
+  if (priceCents > 0) {
+    if (!paymentsEnabled()) {
+      return (
+        <Link href="/contact" className="btn btn-dark w-full py-3.5">
+          Contact us to enrol
+        </Link>
+      );
+    }
+    return <PayButton slug={slug} label={`Pay ${formatPrice(priceCents, currency)} with PayFast`} />;
   }
   if (mode !== "open" && user.role !== "admin") {
     return <Link href={`/contact`} className="btn btn-dark w-full py-3.5">Request access</Link>;

@@ -14,6 +14,8 @@ export type CourseListItem = {
   status: string;
   lessonCount: number;
   lowData?: boolean;
+  priceCents?: number;
+  currency?: string;
 };
 
 const levelLabel: Record<string, string> = { all: "All levels", beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
@@ -35,6 +37,11 @@ export function CourseCard({ c }: { c: CourseListItem }) {
         >
           {soon ? "Coming soon" : "Available"}
         </span>
+        {!soon && (c.priceCents ?? 0) > 0 ? (
+          <span className="absolute right-3 top-3 rounded-full bg-ink px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+            {new Intl.NumberFormat("en-ZA", { style: "currency", currency: c.currency ?? "ZAR", maximumFractionDigits: 0 }).format((c.priceCents ?? 0) / 100)}
+          </span>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-muted">

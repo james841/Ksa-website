@@ -16,7 +16,7 @@ import { nowMs } from "@/lib/now";
  */
 export const instant = false;
 
-export const metadata: Metadata = { title: "Quote requests" };
+export const metadata: Metadata = { title: "Service requests" };
 const PER_PAGE = 25;
 const statuses = ["new", "in_progress", "responded", "closed"] as const;
 
@@ -56,7 +56,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/admin/quo
   return (
     <>
       <PageHeader
-        title="Quote requests"
+        title="Service requests"
         description="Every request from the website is saved here. Open one to read it, reply by email, add notes and track its status."
         actions={
            
@@ -134,7 +134,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/admin/quo
           </Table>
         ) : (
           <div className="p-6">
-            <EmptyState title={q || status || service ? "No matching requests" : "No quote requests yet"} text="Requests from the “Request a quote” form will appear here." />
+            <EmptyState title={q || status || service ? "No matching requests" : "No service requests yet"} text="Requests from the “Request a service” form will appear here." />
           </div>
         )}
         <Pager page={page} pages={Math.ceil(n / PER_PAGE)} href={(p) => link({ page: p })} />

@@ -3,7 +3,8 @@ import Image from "next/image";
 import { PageHero } from "@/components/ui/page-hero";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { CtaBand } from "@/components/home/faq-cta";
-import { Publishing } from "@/components/home/publishing";
+import { AdvisoryBoard } from "@/components/about/advisory-board";
+import { Journey } from "@/components/home/journey";
 import { Seal } from "@/components/ui/seal";
 import { whyChooseUs } from "@/lib/content";
 import { getBoard } from "@/lib/data/public";
@@ -76,7 +77,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="paper-grain bg-mist py-20 sm:py-24">
+      <section id="why" className="paper-grain scroll-mt-28 bg-mist py-20 sm:py-24">
         <div className="container-x">
           <Reveal className="max-w-2xl">
             <p className="kicker">Why choose us</p>
@@ -100,7 +101,8 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <Publishing board={board} />
+      <Journey />
+      <AdvisoryBoard board={board} tone="white" />
       <div className="pt-20 sm:pt-24">
         <CtaBand />
       </div>

@@ -120,18 +120,26 @@ which is handy while testing.
 ## 3. How the website works
 
 ### Public website
-Home, About, 8 research service pages, Institutions, Webinars, Courses, Publishing
-(DJIS partnership, conferences, advisory board), FAQs, Contact and Request a quote.
-Service text comes from the KSA brief and lives in `lib/content.ts`.
+| Page | What is on it |
+| --- | --- |
+| Home | The hero with the carousel, what KSA does, the eight research services, webinars and courses, and one call to action. Deliberately short: everything else lives behind the menu. |
+| Services | All eight research services, plus the work done for institutions |
+| Webinars | Upcoming and past free monthly webinars, with registration |
+| Courses | The course catalogue, with free and paid courses |
+| Publishing | Publishing support, the partner journal, and conferences |
+| About | The academy, how we work, why choose us, and the advisory board |
+| Contact | Contact details and the message form |
+| Request a service | The main enquiry form (it used to be called "Request a quote") |
 
-**Homepage order:** hero with the 3D curved carousel inside it → the four process steps (#01 to #04)
-→ scrolling services strip → about and why choose us → services grid → institutions
-→ webinars and courses → publishing and board → FAQs → quote call to action.
+**The menu has six links.** Services opens a panel with "For individuals" and "For institutions"
+side by side. Publishing and About open a short list:
 
-The **curved carousel** sits cards on the inside of a cylinder, so outer cards turn in and
-look larger, like your reference design. It drifts slowly, pauses on hover and when
-off-screen, can be dragged or moved with the arrows, and respects "reduce motion".
-Its cards are managed in **Admin → Homepage carousel**.
+- **Publishing:** publishing support, conferences and events, and the partner journal
+  (De-centre: Journal of Interdisciplinary Studies, which opens on the journal's own site).
+- **About:** about us, advisory board, why choose us, and FAQs.
+
+The advisory board, the "how we work" steps and the FAQs used to sit on the homepage. They now
+live under About and the FAQs page, reached from the menu, so the homepage stays short.
 
 ### Accounts
 - Anyone can register (name, email, password; country and institution optional).
@@ -171,6 +179,41 @@ Its cards are managed in **Admin → Homepage carousel**.
 - **Low data friendly courses:** tick "Low data friendly" on a course when every lesson has
   full text notes or an audio file. Those courses get a badge and a filter in the catalogue.
 
+### Paid courses (PayFast)
+Courses can be free or paid. Set the price in **Admin → Courses → (a course) → Price in rand**.
+Zero keeps the course free.
+
+How a payment works:
+
+1. The learner presses **Pay R350 with PayFast** on the course page.
+2. The website saves the payment as *pending* and sends them to PayFast with a signed form.
+   Card details are typed on PayFast's site and never touch this website.
+3. PayFast calls `/api/payfast/notify` behind the scenes. The website then checks four things:
+   the signature matches, the call really came from a PayFast server, the amount is exactly the
+   course price, and PayFast confirms the data when asked. Only then is the learner enrolled.
+4. The learner is sent back to the course page either way.
+
+Because step 3 does not depend on the learner coming back, someone who closes the browser after
+paying still gets access, and nobody can give themselves access by faking a return link.
+
+Put these in `.env` locally and in the Vercel settings:
+
+```
+PAYFAST_MERCHANT_ID=
+PAYFAST_MERCHANT_KEY=
+PAYFAST_PASSPHRASE=
+PAYFAST_SANDBOX=false      # true while testing
+```
+
+Leave them empty and paid courses show "Contact us to enrol" instead, so nothing breaks.
+Payments for a course are listed in the admin on that course's page.
+
+**Test it once with the sandbox before going live:** set `PAYFAST_SANDBOX=true`, use PayFast's
+sandbox merchant details, buy a course, and check that the learner appears under Learners and the
+payment shows as paid. Then switch back to the live details and set `PAYFAST_SANDBOX=false`.
+PayFast must be able to reach `https://your-site.com/api/payfast/notify`, so test on the deployed
+site and not on your computer.
+
 ### Data saver (low data mode)
 - A **Data saver** switch sits in the top bar, the phone menu, the footer and the course player.
   It turns on automatically if the visitor's phone or browser asks to save data
@@ -199,7 +242,7 @@ Its cards are managed in **Admin → Homepage carousel**.
 | Courses | Course pages, curriculum builder, lesson editor, private uploads, learners and progress |
 | Email campaigns | Write in simple formatting, choose audience (all subscribers, a webinar's registrants, a course's learners), send a test, send now or schedule, delivery log |
 | Site settings | Contact details, WhatsApp, socials, announcement bar, alerts email, homepage badge and photo |
-| Homepage carousel, FAQs, Advisory board | Add, edit, reorder, hide |
+| Homepage carousel, FAQs, Advisory board | Add, edit, reorder, hide. "Use the recommended cards" refills the carousel with one card per main area of the website |
 | Team and access | Invite people by email with a role, change roles, remove access, resend or cancel invites |
 | Activity log | Who changed what and when |
 
@@ -453,6 +496,17 @@ pg_dump --no-owner --no-privileges --file=ksa-backup.sql "YOUR_SUPABASE_DIRECT_S
 
 Storage files can be downloaded from the Supabase dashboard, or keep the `storage` folder copy
 you already have.
+
+### Social links
+Paste these into **Admin → Site settings → Social media** once. They then appear in the top bar
+and in the footer, and TikTok is included:
+
+```
+Instagram  https://www.instagram.com/kspacedu
+LinkedIn   https://www.linkedin.com/company/knowledge-space-academy/
+Facebook   https://www.facebook.com/share/1ED54ne2MJ/
+TikTok     https://www.tiktok.com/@knowledgespaceacademy
+```
 
 ## 8. Still to confirm with the client
 

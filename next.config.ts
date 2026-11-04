@@ -18,7 +18,8 @@ const csp = [
   "media-src 'self' https:",
   "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com https://iframe.mediadelivery.net",
   "frame-ancestors 'self'",
-  "form-action 'self'",
+  // The checkout page posts the signed payment form to PayFast.
+  "form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za",
   "base-uri 'self'",
   "object-src 'none'",
   "worker-src 'self' blob:",
@@ -64,6 +65,10 @@ const nextConfig: NextConfig = {
     ],
     // The default homepage photo is served from Unsplash's image CDN (free Unsplash License).
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com", pathname: "/photo-**" }],
+  },
+  // The quote form became the service request form; old links still work.
+  async redirects() {
+    return [{ source: "/request-a-quote", destination: "/request-a-service", permanent: true }];
   },
   async headers() {
     return [

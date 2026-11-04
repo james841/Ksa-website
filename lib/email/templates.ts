@@ -68,7 +68,7 @@ export async function sendQuoteReceipt(to: string, name: string, reference: stri
     to,
     subject: `We received your request (${reference})`,
     html: emailLayout({
-      title: "Quote request received",
+      title: "Service request received",
       preheader: "Our team will review your request and reply soon.",
       body: `<h1 style="font-size:24px;margin:0 0 16px">Thank you, ${escapeHtml(name.split(" ")[0])}</h1>
 <p>We have received your request for <strong>${escapeHtml(service)}</strong>. Our team will review the details and get back to you with a clear plan of support.</p>

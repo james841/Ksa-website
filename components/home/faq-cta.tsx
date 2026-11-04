@@ -56,8 +56,8 @@ export function CtaBand() {
                 </ul>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row lg:col-span-4 lg:flex-col lg:items-end">
-                <Link href="/request-a-quote" className="btn btn-light group px-7 py-3.5 text-base">
-                  Request a quote <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                <Link href="/request-a-service" className="btn btn-light group px-7 py-3.5 text-base">
+                  Request a service <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link href="/contact" className="btn px-7 py-3.5 text-base text-white ring-1 ring-white/40 hover:bg-white/10">
                   Contact us

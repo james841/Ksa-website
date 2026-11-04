@@ -8,8 +8,8 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, useMotionValueEvent, useScroll } from "motion/react";
 import * as m from "motion/react-m";
 import { Logo } from "./logo";
-import { mainNav, serviceLinks, institutionLinks } from "@/lib/nav";
-import { ArrowRight, ChevronDown, Menu, X } from "@/components/ui/icons";
+import { mainNav, serviceLinks, institutionLinks, type NavChild } from "@/lib/nav";
+import { ArrowRight, ArrowUpRight, ChevronDown, Menu, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import topicArt from "@/public/images/services/topic-blue.webp";
 
@@ -17,7 +17,10 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 export function HeaderClient({ account, mobileAccount }: { account: ReactNode; mobileAccount: ReactNode }) {
   const [scrolled, setScrolled] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
+  // Which top-level menu is open, by href. The services panel and the short
+  // lists under Publishing and About all use this one piece of state.
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const megaOpen = openMenu === "/services";
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { scrollY, scrollYProgress } = useScroll();
@@ -33,7 +36,7 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setMegaOpen(false);
+        setOpenMenu(null);
         setMobileOpen(false);
       }
     };
@@ -41,12 +44,12 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const openMega = () => {
+  const open = (href: string) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    setMegaOpen(true);
+    setOpenMenu(href);
   };
-  const closeMega = () => {
-    closeTimer.current = setTimeout(() => setMegaOpen(false), 140);
+  const close = () => {
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 140);
   };
 
   return (
@@ -65,15 +68,15 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
         <Logo className={cn("w-auto transition-[height] duration-300", scrolled ? "h-8" : "h-9 sm:h-10")} priority />
 
         <nav aria-label="Main" className="hidden xl:block">
-          <Suspense fallback={<NavList active="" megaOpen={megaOpen} openMega={openMega} closeMega={closeMega} />}>
-            <ActiveNavList megaOpen={megaOpen} openMega={openMega} closeMega={closeMega} />
+          <Suspense fallback={<NavList active="" openMenu={openMenu} open={open} close={close} />}>
+            <ActiveNavList openMenu={openMenu} open={open} close={close} />
           </Suspense>
         </nav>
 
         <div className="flex items-center gap-2">
           <div className="hidden sm:block">{account}</div>
-          <Link href="/request-a-quote" className="btn btn-primary btn-sm hidden sm:inline-flex">
-            Request a quote
+          <Link href="/request-a-service" className="btn btn-primary btn-sm hidden sm:inline-flex">
+            Request a service
           </Link>
           <button suppressHydrationWarning
             type="button"
@@ -96,19 +99,19 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease }}
-            onMouseEnter={openMega}
-            onMouseLeave={closeMega}
+            onMouseEnter={() => open("/services")}
+            onMouseLeave={close}
             className="absolute inset-x-0 top-full hidden border-b border-line bg-white shadow-[0_30px_60px_-30px_rgba(11,20,51,.35)] xl:block"
           >
             <div className="container-x grid grid-cols-12 gap-8 py-8">
               <div className="col-span-7">
-                <p className="mb-4 text-sm font-semibold text-muted">Research services</p>
+                <p className="mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-muted">For individuals</p>
                 <ul className="grid grid-cols-2 gap-1">
                   {serviceLinks.map((l) => (
                     <li key={l.href}>
                       <Link
                         href={l.href}
-                        onClick={() => setMegaOpen(false)}
+                        onClick={close}
                         className="group block rounded-xl p-3 transition-colors hover:bg-mist"
                       >
                         <span className="flex items-center gap-2 font-semibold text-ink group-hover:text-blue">
@@ -121,11 +124,11 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
                 </ul>
               </div>
               <div className="col-span-2 border-l border-line pl-6">
-                <p className="mb-4 text-sm font-semibold text-muted">For institutions</p>
+                <p className="mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-muted">For institutions</p>
                 <ul className="space-y-3">
                   {institutionLinks.map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} onClick={() => setMegaOpen(false)} className="text-sm font-medium text-ink hover:text-blue">
+                      <Link href={l.href} onClick={close} className="text-sm font-medium text-ink hover:text-blue">
                         {l.label}
                       </Link>
                     </li>
@@ -134,7 +137,7 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
               </div>
               <Link
                 href="/webinars"
-                onClick={() => setMegaOpen(false)}
+                onClick={close}
                 className="group col-span-3 overflow-hidden rounded-2xl bg-ink text-white"
               >
                 <Image src={topicArt} alt="" className="h-36 w-full object-cover object-top opacity-90 transition-transform duration-700 group-hover:scale-105" sizes="300px" />
@@ -181,8 +184,8 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
               </div>
               <div className="mt-auto space-y-3 border-t border-line p-5" onClick={() => setMobileOpen(false)}>
                 {mobileAccount}
-                <Link href="/request-a-quote" className="btn btn-primary w-full">
-                  Request a quote
+                <Link href="/request-a-service" className="btn btn-primary w-full">
+                  Request a service
                 </Link>
               </div>
             </m.div>
@@ -193,57 +196,89 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
   );
 }
 
-function ActiveNavList(props: { megaOpen: boolean; openMega: () => void; closeMega: () => void }) {
+function ActiveNavList(props: { openMenu: string | null; open: (href: string) => void; close: () => void }) {
   const pathname = usePathname();
   return <NavList active={pathname} {...props} />;
 }
 
 function NavList({
   active,
-  megaOpen,
-  openMega,
-  closeMega,
+  openMenu,
+  open,
+  close,
 }: {
   active: string;
-  megaOpen: boolean;
-  openMega: () => void;
-  closeMega: () => void;
+  openMenu: string | null;
+  open: (href: string) => void;
+  close: () => void;
 }) {
   return (
     <ul className="flex items-center gap-1">
       {mainNav.map((item) => {
         const isActive = active === item.href || active.startsWith(item.href + "/");
-        if ("mega" in item && item.mega) {
-          return (
-            <li key={item.href} onMouseEnter={openMega} onMouseLeave={closeMega}>
-              <Link
-                href={item.href}
-                aria-expanded={megaOpen}
-                onFocus={openMega}
-                className={cn(
-                  "flex items-center gap-1 rounded-full px-2.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue xl:px-3.5",
-                  isActive ? "text-blue" : "text-ink",
-                )}
-              >
-                {item.label}
-                <ChevronDown size={16} className={cn("transition-transform duration-200", megaOpen && "rotate-180")} />
-              </Link>
-            </li>
-          );
-        }
+        const hasPanel = Boolean(item.mega || item.menu);
         return (
-          <li key={item.href}>
+          <li
+            key={item.href}
+            className="relative"
+            onMouseEnter={hasPanel ? () => open(item.href) : undefined}
+            onMouseLeave={hasPanel ? close : undefined}
+          >
             <Link
               href={item.href}
-              onFocus={closeMega}
+              onFocus={hasPanel ? () => open(item.href) : close}
+              aria-expanded={hasPanel ? openMenu === item.href : undefined}
               className={cn(
-                "relative rounded-full px-2.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue xl:px-3.5",
+                "relative flex items-center gap-1 rounded-full px-2.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue xl:px-3.5",
                 isActive ? "text-blue" : "text-ink",
               )}
             >
               {item.label}
-              {isActive ? <span className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-blue" /> : null}
+              {hasPanel ? (
+                <ChevronDown size={16} className={cn("transition-transform duration-200", openMenu === item.href && "rotate-180")} />
+              ) : null}
+              {isActive && !hasPanel ? <span className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-blue" /> : null}
             </Link>
+
+            {/* The short lists under Publishing and About. */}
+            <AnimatePresence>
+              {item.menu && openMenu === item.href ? (
+                <m.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18, ease }}
+                  className="absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-3"
+                >
+                  <ul className="overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-[0_30px_60px_-30px_rgba(11,20,51,.45)]">
+                    {item.menu.map((child) => (
+                      <li key={child.href}>
+                        {child.external ? (
+                          <a
+                            href={child.href}
+                            target="_blank"
+                            rel="noopener"
+                            onClick={close}
+                            className="group block rounded-xl p-3 transition-colors hover:bg-mist"
+                          >
+                            <span className="flex items-center gap-1.5 font-semibold text-ink group-hover:text-blue">
+                              {child.label}
+                              <ArrowUpRight size={15} className="shrink-0 text-blue" />
+                            </span>
+                            {child.text ? <span className="mt-0.5 block text-sm leading-snug text-muted">{child.text}</span> : null}
+                          </a>
+                        ) : (
+                          <Link href={child.href} onClick={close} className="group block rounded-xl p-3 transition-colors hover:bg-mist">
+                            <span className="block font-semibold text-ink group-hover:text-blue">{child.label}</span>
+                            {child.text ? <span className="mt-0.5 block text-sm leading-snug text-muted">{child.text}</span> : null}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </m.div>
+              ) : null}
+            </AnimatePresence>
           </li>
         );
       })}
@@ -252,24 +287,44 @@ function NavList({
 }
 
 function MobileNav({ onNavigate }: { onNavigate: () => void }) {
-  const [servicesOpen, setServicesOpen] = useState(false);
+  // Only one section is open at a time, so the menu never becomes a long scroll.
+  const [section, setSection] = useState<string | null>(null);
+
   return (
     <nav aria-label="Mobile" className="px-3">
       <ul className="space-y-0.5">
-        {mainNav.map((item) =>
-          "mega" in item && item.mega ? (
+        {mainNav.map((item) => {
+          const children: NavChild[] = item.mega
+            ? [
+                { label: "All services", href: "/services" },
+                ...serviceLinks.map((l) => ({ label: l.label, href: l.href })),
+                { label: "For institutions", href: "/institutions" },
+              ]
+            : (item.menu ?? []);
+          if (!children.length) {
+            return (
+              <li key={item.href}>
+                <Link href={item.href} onClick={onNavigate} className="block rounded-xl px-3 py-3.5 text-lg font-semibold text-ink hover:bg-mist">
+                  {item.label}
+                </Link>
+              </li>
+            );
+          }
+          const isOpen = section === item.href;
+          return (
             <li key={item.href}>
-              <button suppressHydrationWarning
+              <button
+                suppressHydrationWarning
                 type="button"
                 className="flex w-full items-center justify-between rounded-xl px-3 py-3.5 text-lg font-semibold text-ink"
-                aria-expanded={servicesOpen}
-                onClick={() => setServicesOpen((v) => !v)}
+                aria-expanded={isOpen}
+                onClick={() => setSection(isOpen ? null : item.href)}
               >
                 {item.label}
-                <ChevronDown size={20} className={cn("transition-transform", servicesOpen && "rotate-180")} />
+                <ChevronDown size={20} className={cn("transition-transform", isOpen && "rotate-180")} />
               </button>
               <AnimatePresence initial={false}>
-                {servicesOpen ? (
+                {isOpen ? (
                   <m.ul
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
@@ -277,30 +332,31 @@ function MobileNav({ onNavigate }: { onNavigate: () => void }) {
                     transition={{ duration: 0.3, ease }}
                     className="overflow-hidden pl-3"
                   >
-                    <li>
-                      <Link href="/services" onClick={onNavigate} className="block rounded-lg px-3 py-2.5 font-medium text-blue">
-                        All services
-                      </Link>
-                    </li>
-                    {serviceLinks.map((l) => (
-                      <li key={l.href}>
-                        <Link href={l.href} onClick={onNavigate} className="block rounded-lg px-3 py-2.5 text-muted hover:text-ink">
-                          {l.label}
-                        </Link>
+                    {children.map((child) => (
+                      <li key={child.href}>
+                        {child.external ? (
+                          <a
+                            href={child.href}
+                            target="_blank"
+                            rel="noopener"
+                            onClick={onNavigate}
+                            className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-muted hover:text-ink"
+                          >
+                            {child.label} <ArrowUpRight size={14} className="text-blue" />
+                          </a>
+                        ) : (
+                          <Link href={child.href} onClick={onNavigate} className="block rounded-lg px-3 py-2.5 text-muted hover:text-ink">
+                            {child.label}
+                          </Link>
+                        )}
                       </li>
                     ))}
                   </m.ul>
                 ) : null}
               </AnimatePresence>
             </li>
-          ) : (
-            <li key={item.href}>
-              <Link href={item.href} onClick={onNavigate} className="block rounded-xl px-3 py-3.5 text-lg font-semibold text-ink hover:bg-mist">
-                {item.label}
-              </Link>
-            </li>
-          ),
-        )}
+          );
+        })}
       </ul>
     </nav>
   );

@@ -87,6 +87,27 @@ export function CourseForm({ course }: { course?: Course }) {
                 </select>
                 <p className="mt-1.5 text-xs text-muted">Use “invite” for paid or institution-only courses. Grant access from the Learners section below.</p>
               </div>
+              <div>
+                <label className="field-label" htmlFor="c-price">
+                  Price in rand <span className="font-normal text-muted">(0 for a free course)</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-lg text-muted">R</span>
+                  <input
+                    suppressHydrationWarning
+                    id="c-price"
+                    name="price"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    defaultValue={c ? (c.priceCents / 100).toFixed(2) : "0"}
+                    className="field"
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-muted">
+                  Paid courses are taken through PayFast. The learner gets access as soon as PayFast confirms the payment.
+                </p>
+              </div>
               <label className="flex items-start gap-3 rounded-xl bg-mist p-4 text-sm">
                 <input suppressHydrationWarning type="checkbox" name="lowData" defaultChecked={c?.lowData ?? false} className="mt-0.5 size-5 accent-blue" />
                 <span>
