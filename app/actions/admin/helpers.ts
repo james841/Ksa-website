@@ -29,6 +29,12 @@ export async function imageFromForm(fd: FormData, name: string, adminId: string,
     const saved = await storeImage(file, adminId, maxWidth);
     return saved.url;
   }
+  // The picker sets <name>_picked when someone chose a photo. If it is set and no
+  // file arrived, the upload was lost on the way (usually too large for the host),
+  // and saying so is far better than quietly saving the page without the picture.
+  if (str(fd, `${name}_picked`) === "1") {
+    throw new Error("That image did not reach the server, so nothing was saved. It is probably too large. Try a smaller photo, or one under 4MB.");
+  }
   return str(fd, `${name}_current`) || null;
 }
 
@@ -37,7 +43,8 @@ export const errMsg = (e: unknown, fallback = "Something went wrong. Please try 
   if (cause?.code === "23505" || /duplicate key/i.test(cause?.message ?? "")) return "That web address is already used. Choose a different one.";
   if (e instanceof Error) {
     if (/duplicate key|unique/i.test(e.message)) return "That web address is already used. Choose a different one.";
-    if (e.message.startsWith("Please") || e.message.startsWith("Images") || e.message.startsWith("Files") || e.message.startsWith("That")) return e.message;
+    // Messages written for the admin are passed through as they are.
+    if (/^(Please|Images|Files|That|This server|Supabase Storage)/.test(e.message)) return e.message;
   }
   console.error("[admin]", e);
   return fallback;

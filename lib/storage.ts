@@ -57,8 +57,19 @@ export async function saveFile(folder: "public" | "private", ext: string, data: 
     return key;
   }
   const full = safeJoin(key);
-  await mkdir(path.dirname(full), { recursive: true });
-  await writeFile(full, data);
+  try {
+    await mkdir(path.dirname(full), { recursive: true });
+    await writeFile(full, data);
+  } catch (e) {
+    const code = (e as { code?: string }).code;
+    // Vercel and similar hosts have a read-only disk: uploads must go to Supabase Storage.
+    if (code === "EROFS" || code === "EACCES" || code === "EPERM") {
+      throw new Error(
+        "This server cannot save uploaded files to disk. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to the hosting settings so uploads go to Supabase Storage, then try again.",
+      );
+    }
+    throw e;
+  }
   return key;
 }
 

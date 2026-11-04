@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import * as m from "motion/react-m";
-import { ArrowRight, Video } from "@/components/ui/icons";
+import { ArrowRight } from "@/components/ui/icons";
 import { CurvedCarousel, type Slide } from "./curved-carousel";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -40,17 +40,16 @@ export function Hero({ badge, slides, image }: { badge: string; slides: Slide[];
       </div>
 
       <div className="container-x pt-14 text-center sm:pt-20 lg:pt-24">
-        <m.div {...rise(0.05)}>
+        {/* A quiet typographic line, set between two rules, instead of a floating pill. */}
+        <m.div {...rise(0.05)} className="flex items-center justify-center gap-4">
+          <span aria-hidden className="h-px w-8 bg-white/25 sm:w-12" />
           <Link
             href="/webinars"
-            className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-1.5 pl-2 pr-4 font-display text-[0.82rem] font-medium text-white transition-colors hover:border-white/50 hover:bg-white/15 sm:text-sm"
+            className="font-display text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-white/75 underline-offset-[6px] transition-colors hover:text-white hover:underline sm:text-[0.78rem]"
           >
-            <span className="grid size-6 place-items-center rounded-full bg-white/15 text-sky">
-              <Video size={14} />
-            </span>
             {badge}
-            <ArrowRight size={15} className="text-sky transition-transform group-hover:translate-x-0.5" />
           </Link>
+          <span aria-hidden className="h-px w-8 bg-white/25 sm:w-12" />
         </m.div>
 
         {/* CSS animation (not JS) so the headline paints immediately: better LCP. */}

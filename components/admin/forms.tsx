@@ -177,12 +177,41 @@ export function ActionButton({
   );
 }
 
+/**
+ * Shrinks a picked photo in the browser before it is sent.
+ *
+ * Phone photos are often 4-8MB, and some hosts (Vercel among them) refuse an
+ * upload larger than about 4.5MB, which used to look like "it saved but the
+ * picture is missing". Resizing here keeps uploads small and fast; the server
+ * still compresses again to WebP.
+ */
+async function shrinkImage(file: File, maxSide = 2000, maxBytes = 1_500_000): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+  if (file.size <= maxBytes) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/webp", 0.85));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+  } catch {
+    return file; // Older browser: send the original and let the server handle it.
+  }
+}
+
 /** Image picker with instant preview. Keeps the current image unless a new file is chosen or it is removed. */
 export function ImageField({
   name,
   label,
   current,
-  hint = "JPG, PNG or WebP up to 8MB. It is compressed automatically.",
+  hint = "JPG, PNG or WebP. Large photos are made smaller automatically before they are sent.",
   aspect = "aspect-[4/3]",
 }: {
   name: string;
@@ -193,10 +222,34 @@ export function ImageField({
 }) {
   const [preview, setPreview] = useState<string | null>(current ?? null);
   const [removed, setRemoved] = useState(false);
+  const [picked, setPicked] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => () => {
     if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
   }, [preview]);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const original = e.target.files?.[0];
+    if (!original) return;
+    setBusy(true);
+    setPreview(URL.createObjectURL(original));
+    setRemoved(false);
+    setPicked(true);
+    const smaller = await shrinkImage(original);
+    if (smaller !== original && inputRef.current) {
+      // Put the smaller file back into the field so that is what gets sent.
+      const dt = new DataTransfer();
+      dt.items.add(smaller);
+      inputRef.current.files = dt.files;
+      setNote(`Made smaller for upload: ${(original.size / 1024 / 1024).toFixed(1)}MB to ${Math.round(smaller.size / 1024)}KB`);
+    } else {
+      setNote(`${Math.max(1, Math.round(original.size / 1024))}KB ready to upload`);
+    }
+    setBusy(false);
+  };
+
   return (
     <div>
       <span className="field-label">{label}</span>
@@ -220,15 +273,9 @@ export function ImageField({
             name={name}
             accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
             className="block text-sm file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) {
-                setPreview(URL.createObjectURL(f));
-                setRemoved(false);
-              }
-            }}
+            onChange={onPick}
           />
-          <p className="text-xs text-muted">{hint}</p>
+          <p className="text-xs text-muted">{busy ? "Preparing the image…" : note ?? hint}</p>
           {preview ? (
             <button suppressHydrationWarning
               type="button"
@@ -236,6 +283,8 @@ export function ImageField({
               onClick={() => {
                 setPreview(null);
                 setRemoved(true);
+                setPicked(false);
+                setNote(null);
                 if (inputRef.current) inputRef.current.value = "";
               }}
             >
@@ -243,6 +292,8 @@ export function ImageField({
             </button>
           ) : null}
           <input suppressHydrationWarning type="hidden" name={`${name}_current`} value={removed ? "" : current ?? ""} />
+          {/* Tells the server a file was chosen, so a picture that never arrives is reported instead of ignored. */}
+          <input suppressHydrationWarning type="hidden" name={`${name}_picked`} value={picked ? "1" : ""} />
         </div>
       </div>
     </div>

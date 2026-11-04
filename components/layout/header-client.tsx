@@ -61,10 +61,10 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
         className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-blue"
         style={{ scaleX: scrollYProgress }}
       />
-      <div className={cn("container-x flex items-center justify-between gap-6 transition-[height] duration-300", scrolled ? "h-16" : "h-20")}>
+      <div className={cn("container-x flex items-center justify-between gap-3 transition-[height] duration-300 xl:gap-6", scrolled ? "h-16" : "h-20")}>
         <Logo className={cn("w-auto transition-[height] duration-300", scrolled ? "h-8" : "h-9 sm:h-10")} priority />
 
-        <nav aria-label="Main" className="hidden lg:block">
+        <nav aria-label="Main" className="hidden xl:block">
           <Suspense fallback={<NavList active="" megaOpen={megaOpen} openMega={openMega} closeMega={closeMega} />}>
             <ActiveNavList megaOpen={megaOpen} openMega={openMega} closeMega={closeMega} />
           </Suspense>
@@ -77,7 +77,7 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
           </Link>
           <button suppressHydrationWarning
             type="button"
-            className="grid size-11 place-items-center rounded-full text-ink hover:bg-mist lg:hidden"
+            className="grid size-11 place-items-center rounded-full text-ink hover:bg-mist xl:hidden"
             aria-label="Open menu"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(true)}
@@ -98,7 +98,7 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
             transition={{ duration: 0.22, ease }}
             onMouseEnter={openMega}
             onMouseLeave={closeMega}
-            className="absolute inset-x-0 top-full hidden border-b border-line bg-white shadow-[0_30px_60px_-30px_rgba(11,20,51,.35)] lg:block"
+            className="absolute inset-x-0 top-full hidden border-b border-line bg-white shadow-[0_30px_60px_-30px_rgba(11,20,51,.35)] xl:block"
           >
             <div className="container-x grid grid-cols-12 gap-8 py-8">
               <div className="col-span-7">
@@ -154,7 +154,7 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
       {/* Mobile drawer */}
       <AnimatePresence>
         {mobileOpen ? (
-          <m.div key="mobile" className="fixed inset-0 z-[60] lg:hidden" initial="closed" animate="open" exit="closed">
+          <m.div key="mobile" className="fixed inset-0 z-[60] xl:hidden" initial="closed" animate="open" exit="closed">
             <m.div
               className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
               variants={{ open: { opacity: 1 }, closed: { opacity: 0 } }}
@@ -221,7 +221,7 @@ function NavList({
                 aria-expanded={megaOpen}
                 onFocus={openMega}
                 className={cn(
-                  "flex items-center gap-1 rounded-full px-3.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue",
+                  "flex items-center gap-1 rounded-full px-2.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue xl:px-3.5",
                   isActive ? "text-blue" : "text-ink",
                 )}
               >
@@ -237,7 +237,7 @@ function NavList({
               href={item.href}
               onFocus={closeMega}
               className={cn(
-                "relative rounded-full px-3.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue",
+                "relative rounded-full px-2.5 py-2 text-[0.94rem] font-medium transition-colors hover:text-blue xl:px-3.5",
                 isActive ? "text-blue" : "text-ink",
               )}
             >

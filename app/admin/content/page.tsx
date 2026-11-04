@@ -8,6 +8,7 @@ import { AdminForm, ImageField } from "@/components/admin/forms";
 import { PageHeader, Panel } from "@/components/admin/ui";
 import { SubmitButton } from "@/components/forms/fields";
 import { ArrowRight } from "@/components/ui/icons";
+import { usingSupabaseStorage } from "@/lib/storage";
 
 /*
  * Private page: it is rendered fresh for each signed-in person (the server checks the
@@ -49,6 +50,7 @@ export default async function SettingsPage() {
 
   return (
     <>
+      <StorageNotice />
       <PageHeader title="Site settings" description="Contact details, social links and the announcement bar. Changes appear on the website straight away." />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         {shortcuts.map((x) => (
@@ -119,5 +121,36 @@ export default async function SettingsPage() {
         </div>
       </AdminForm>
     </>
+  );
+}
+
+/**
+ * Where uploaded pictures and files are kept. On a host with no permanent disk
+ * (Vercel, for example) uploads must go to Supabase Storage, and without it they
+ * are lost without warning. This says which one is in use.
+ */
+function StorageNotice() {
+  const onServerless = Boolean(process.env.VERCEL);
+  if (usingSupabaseStorage) {
+    return (
+      <p className="mb-6 rounded-2xl border border-line bg-white px-5 py-3.5 text-sm text-muted">
+        Uploads are saved to <strong className="font-semibold text-ink">Supabase Storage</strong>.
+      </p>
+    );
+  }
+  if (onServerless) {
+    return (
+      <p role="alert" className="mb-6 rounded-2xl border border-danger/30 bg-[#fbeceb] px-5 py-4 text-sm text-danger">
+        <strong className="block font-semibold">Uploads cannot be saved on this host.</strong>
+        This website is running on a host with no permanent disk, and Supabase Storage is not set up, so images and course
+        files will not be kept. Add <code>SUPABASE_URL</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code> to the hosting
+        settings, then deploy again.
+      </p>
+    );
+  }
+  return (
+    <p className="mb-6 rounded-2xl border border-line bg-white px-5 py-3.5 text-sm text-muted">
+      Uploads are saved to the <strong className="font-semibold text-ink">storage folder</strong> on this computer.
+    </p>
   );
 }
