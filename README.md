@@ -122,7 +122,7 @@ which is handy while testing.
 ### Public website
 | Page | What is on it |
 | --- | --- |
-| Home | The hero with the carousel, what KSA does, the eight research services, webinars and courses, and one call to action. Deliberately short: everything else lives behind the menu. |
+| Home | Four blocks only: the hero with the carousel, a short about block, the next webinars and the course row, and one call to action. Everything else (the eight services, why choose us, the advisory board, FAQs, publishing) lives behind the menu. |
 | Services | All eight research services, plus the work done for institutions |
 | Webinars | Upcoming and past free monthly webinars, with registration |
 | Courses | The course catalogue, with free and paid courses |
@@ -183,6 +183,15 @@ live under About and the FAQs page, reached from the menu, so the homepage stays
 Courses can be free or paid. Set the price in **Admin → Courses → (a course) → Price in rand**.
 Zero keeps the course free.
 
+**Admin → Course payments** is the page to open for anything about money: what has been
+paid, what was started and abandoned, the total taken, and whether PayFast is connected
+at all (it says so plainly, and names the variables to add if it is not).
+
+The payment button only shows when **both** are true: the price is above zero **and** the
+course status is *Published*. A "coming soon" course shows "Notify me when it opens"
+instead, whatever its price. If the PayFast keys are missing, a priced course shows
+"Contact us to enrol" rather than a button that cannot work.
+
 How a payment works:
 
 1. The learner presses **Pay R350 with PayFast** on the course page.
@@ -240,9 +249,10 @@ site and not on your computer.
 | Subscribers | Opted-in list, unsubscribe, add someone who agreed offline, CSV export |
 | Webinars | Create, publish, cancel, attendees, email attendees, attendance |
 | Courses | Course pages, curriculum builder, lesson editor, private uploads, learners and progress |
+| Course payments | Every payment attempt with its reference, amount and status, the total taken, and whether PayFast is connected |
 | Email campaigns | Write in simple formatting, choose audience (all subscribers, a webinar's registrants, a course's learners), send a test, send now or schedule, delivery log |
 | Site settings | Contact details, WhatsApp, socials, announcement bar, alerts email, homepage badge and photo |
-| Homepage carousel, FAQs, Advisory board | Add, edit, reorder, hide. "Use the recommended cards" refills the carousel with one card per main area of the website |
+| Homepage carousel, FAQs, Advisory board | Add, edit, reorder, hide. The carousel holds one card per part of the website (services, webinars, courses, publishing), never a single service; "Use the recommended cards" puts those four back |
 | Team and access | Invite people by email with a role, change roles, remove access, resend or cancel invites |
 | Activity log | Who changed what and when |
 

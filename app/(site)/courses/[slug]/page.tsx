@@ -204,12 +204,17 @@ async function CourseAccess({
   const user = await getCurrentUser();
   const next = encodeURIComponent(`/courses/${slug}`);
   if (!user) {
+    // A paid course says so on the button, so a visitor can see the price and the
+    // payment step before signing up. An account comes first because the course,
+    // the payment and the certificate all belong to it.
+    const paid = !soon && priceCents > 0 && paymentsEnabled();
     return (
       <div className="space-y-3">
         <Link href={`/register?next=${next}`} className="btn btn-primary w-full py-3.5">
-          {soon ? "Create an account to get notified" : "Create a free account to enrol"}
+          {soon ? "Create an account to get notified" : paid ? `Create an account and pay ${formatPrice(priceCents, currency)}` : "Create a free account to enrol"}
         </Link>
         <Link href={`/login?next=${next}`} className="btn btn-ghost w-full">I already have an account</Link>
+        {paid ? <p className="text-center text-xs text-muted">You pay on PayFast’s own page. Card details never reach this website.</p> : null}
       </div>
     );
   }

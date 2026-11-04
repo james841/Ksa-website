@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
-import { ServiceMarquee } from "@/components/home/marquee";
 import { AboutPreview } from "@/components/home/about";
-import { ServicesGrid } from "@/components/home/services-grid";
 import { Learning } from "@/components/home/learning";
 import { CtaBand } from "@/components/home/faq-cta";
 import { getPublicCourses, getSettings, getSlides, getUpcomingWebinars } from "@/lib/data/public";
@@ -15,7 +13,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-// The homepage sits at app/page.tsx (outside the (site) group), so it adds the site shell itself.
+/*
+ * The homepage sits at app/page.tsx (outside the (site) group), so it adds the
+ * site shell itself.
+ *
+ * It is deliberately short: four blocks, in this order.
+ *   1. Hero, with the carousel that signposts the four parts of the website
+ *   2. A brief about block, with "More about us" for the rest
+ *   3. What is on right now: the next webinars and the course row
+ *   4. One closing call to action
+ * Everything else (the eight services, why choose us, the advisory board, the
+ * FAQs, publishing) lives behind the navigation, not on this page.
+ */
 export default async function HomePage() {
   const [settings, slides, webinars, courses] = await Promise.all([
     getSettings(),
@@ -31,9 +40,7 @@ export default async function HomePage() {
   return (
     <SiteShell>
       <Hero badge={settings.heroBadge} slides={carousel} image={settings.heroImage || DEFAULT_HERO_IMAGE} />
-      <ServiceMarquee />
       <AboutPreview />
-      <ServicesGrid />
       <Learning webinars={webinars} courses={courses} />
       <CtaBand />
     </SiteShell>

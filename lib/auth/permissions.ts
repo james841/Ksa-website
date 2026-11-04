@@ -14,6 +14,7 @@ export const SECTIONS = [
   "subscribers",
   "webinars",
   "courses",
+  "payments",
   "campaigns",
   "content",
   "activity",
@@ -28,6 +29,7 @@ export const SECTION_LABELS: Record<Section, string> = {
   subscribers: "Subscribers",
   webinars: "Webinars",
   courses: "Courses",
+  payments: "Course payments",
   campaigns: "Email campaigns",
   content: "Website content",
   activity: "Activity log",
@@ -52,8 +54,8 @@ export const ROLE_INFO: Record<StaffRole, { label: string; description: string; 
   },
   course_manager: {
     label: "Course manager",
-    description: "Courses, lessons and files, webinars, and giving learners access to courses.",
-    sections: ["overview", "courses", "webinars", "users"],
+    description: "Courses, lessons and files, webinars, course payments, and giving learners access to courses.",
+    sections: ["overview", "courses", "payments", "webinars", "users"],
   },
   support: {
     label: "Support",

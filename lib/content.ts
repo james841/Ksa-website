@@ -410,15 +410,17 @@ export const quoteServiceOptions = [
 /**
  * The cards in the homepage carousel.
  *
- * These point at the main parts of the website rather than at single services,
- * so the row works as a signpost: where can I go from here? The admin can edit,
- * reorder, hide or replace every card in Admin > Homepage carousel.
+ * One card per part of the website, never a single service: "Research services"
+ * takes people to the services page, where all eight are listed. Keeping single
+ * services out of here is deliberate, so the carousel stays a signpost rather
+ * than a second services page. The admin can edit, reorder, hide or replace
+ * every card in Admin > Homepage carousel.
  */
 export const homeHighlights = [
   {
     id: "services",
     title: "Research services",
-    caption: "Topic, design, analysis, chapters, editing and publication support.",
+    caption: "All eight services, for individuals and for institutions.",
     href: "/services",
     image: "/images/services/design-blue.webp",
   },
@@ -442,20 +444,6 @@ export const homeHighlights = [
     caption: "Journal support, our partner journal and scholarly events.",
     href: "/publishing",
     image: "/images/services/manuscript-blue.webp",
-  },
-  {
-    id: "institutions",
-    title: "For institutions",
-    caption: "Mentorship programmes, writing retreats and research training.",
-    href: "/institutions",
-    image: "/images/services/chapters-blue.webp",
-  },
-  {
-    id: "individuals",
-    title: "For individuals",
-    caption: "One-to-one support for postgraduate students and researchers.",
-    href: "/services",
-    image: "/images/services/qualitative-blue.webp",
   },
 ];
 

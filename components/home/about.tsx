@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { Seal } from "@/components/ui/seal";
-import { whyChooseUs } from "@/lib/content";
 import { ArrowRight } from "@/components/ui/icons";
 import chapters from "@/public/images/services/chapters-blue.webp";
 import qualitative from "@/public/images/services/qualitative-blue.webp";
@@ -46,9 +45,8 @@ export function AboutPreview() {
               Research support that keeps you moving towards completion
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-muted">
-              We are an academic research and writing consultancy offering expert guidance at every stage of the research
-              journey. From topic selection and research design to data analysis and full manuscript development, our
-              multidisciplinary team of PhD-qualified specialists and seasoned authors handles every project with precision,
+              We guide postgraduate students and researchers at every stage, from choosing a topic to publishing the
+              finished work. Our team of PhD-qualified specialists works across all disciplines, with precision,
               integrity and care.
             </p>
           </Reveal>
@@ -68,20 +66,20 @@ export function AboutPreview() {
             </dl>
           </Reveal>
 
+          {/*
+            "Why choose us" and the advisory board used to sit here. They now live
+            on the About page, reached from the About menu, so this block stays
+            short and the homepage does not repeat it.
+          */}
           <Reveal delay={0.15}>
-            {/* Each point is marked by a thin rule down its left edge, which deepens on hover. */}
-            <ul className="mt-10 space-y-6">
-              {whyChooseUs.map((w) => (
-                <li key={w.title} className="group relative pl-5 sm:pl-6">
-                  <span aria-hidden className="absolute inset-y-1 left-0 w-[2px] bg-line transition-colors duration-300 group-hover:bg-blue" />
-                  <p className="font-display text-[1.05rem] font-semibold leading-snug text-ink">{w.title}</p>
-                  <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{w.text}</p>
-                </li>
-              ))}
-            </ul>
-            <Link href="/about" className="btn btn-dark group mt-10">
-              More about us <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
-            </Link>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href="/services" className="btn btn-primary group">
+                See our services <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link href="/about" className="btn btn-ghost">
+                More about us
+              </Link>
+            </div>
           </Reveal>
         </div>
       </div>

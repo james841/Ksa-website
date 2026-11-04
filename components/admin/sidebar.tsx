@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/app/actions/auth";
 import { Logo } from "@/components/layout/logo";
-import { Book, Chart, Globe, Help, Home, Image, Inbox, Layers, Lock, Logout, Menu, Send, Settings, Users, Video, X } from "@/components/ui/icons";
+import { Book, Card, Chart, Globe, Help, Home, Image, Inbox, Layers, Lock, Logout, Menu, Send, Settings, Users, Video, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { can, ROLE_INFO, sectionForPath, type StaffRole } from "@/lib/auth/permissions";
 
@@ -27,6 +27,7 @@ const groups = [
     items: [
       { href: "/admin/webinars", label: "Webinars", Icon: Video },
       { href: "/admin/courses", label: "Courses", Icon: Book },
+      { href: "/admin/payments", label: "Course payments", Icon: Card },
     ],
   },
   {

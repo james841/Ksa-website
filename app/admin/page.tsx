@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { and, asc, count, desc, eq, gte, isNotNull, lte, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, isNotNull, lte, sql, sum } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/session";
 import { can, ROLE_INFO, type Section } from "@/lib/auth/permissions";
@@ -8,6 +8,7 @@ import { AlertsCard } from "@/components/admin/alerts-card";
 import { generalAlertEmail } from "@/lib/notify";
 import { Badge, EmptyState, Panel, StatCard } from "@/components/admin/ui";
 import { formatDate, formatDateTime } from "@/lib/utils";
+import { formatPrice } from "@/lib/payments/payfast";
 import { ArrowRight, Plus } from "@/components/ui/icons";
 import { now, nowMs } from "@/lib/now";
 
@@ -39,6 +40,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     [quotesOpen],
     [subs],
     [enrolled],
+    [takings],
     upcoming,
     recentQuotes,
     followUps,
@@ -53,6 +55,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     db.select({ n: count() }).from(schema.quoteRequests).where(eq(schema.quoteRequests.status, "in_progress")),
     db.select({ n: count() }).from(schema.emailSubscriptions).where(eq(schema.emailSubscriptions.status, "subscribed")),
     db.select({ n: count() }).from(schema.enrollments),
+    db.select({ n: count(), total: sum(schema.payments.amountCents) }).from(schema.payments).where(eq(schema.payments.status, "paid")),
     db
       .select({
         id: schema.webinars.id,
@@ -134,6 +137,15 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
         {c("users") ? <StatCard label="Registered users" value={users.n} hint={`${newUsers.n} joined in the last 7 days`} href="/admin/users" /> : null}
         {c("subscribers") ? <StatCard label="Email subscribers" value={subs.n} hint="People who opted in to marketing" href="/admin/subscribers" /> : null}
         {c("courses") ? <StatCard tone="mist" label="Course enrolments" value={enrolled.n} hint="Across all courses" href="/admin/courses" /> : null}
+        {c("payments") ? (
+          <StatCard
+            tone="ink"
+            label="Course payments"
+            value={formatPrice(Number(takings?.total ?? 0))}
+            hint={`${takings?.n ?? 0} paid through PayFast`}
+            href="/admin/payments"
+          />
+        ) : null}
       </div>
 
       <AlertsCard staffRole={admin.staffRole} on={me?.notifyByEmail ?? true} generalEmail={generalEmail} />

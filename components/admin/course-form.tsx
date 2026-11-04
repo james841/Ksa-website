@@ -105,7 +105,9 @@ export function CourseForm({ course }: { course?: Course }) {
                   />
                 </div>
                 <p className="mt-1.5 text-xs text-muted">
-                  Paid courses are taken through PayFast. The learner gets access as soon as PayFast confirms the payment.
+                  Set any amount above 0 and the course page shows “Pay R… with PayFast” instead of “Enrol for free”. The learner
+                  gets access the moment PayFast confirms the payment. The button only appears once the status above is
+                  <strong className="font-semibold"> Published</strong>.
                 </p>
               </div>
               <label className="flex items-start gap-3 rounded-xl bg-mist p-4 text-sm">
