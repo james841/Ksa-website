@@ -35,7 +35,7 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[id]
   if (!row) notFound();
   if (row.payment.status === "paid") redirect(`/courses/${row.courseSlug}?payment=done`);
 
-  const { action, fields } = checkoutFields({
+  const { action, fields, local } = checkoutFields({
     reference: row.payment.reference,
     amountCents: row.payment.amountCents,
     itemName: row.courseTitle,
@@ -57,6 +57,14 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[id]
           PayFast handles the card details. Your card number never reaches this website.
         </p>
 
+        {local ? (
+          <p className="mt-4 rounded-xl bg-mist p-4 text-left text-sm text-ink">
+            <strong className="block font-semibold">This website is running on a computer, not on its real address.</strong>
+            PayFast cannot send the confirmation back to a laptop, so a payment made from here opens the PayFast page but
+            never unlocks the course. Test the whole payment on the deployed website instead.
+          </p>
+        ) : null}
+
         <form id="payfast" method="post" action={action} className="mt-7">
           {fields.map(([name, value]) => (
             <input key={name} type="hidden" name={name} value={value} />
@@ -69,8 +77,11 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[id]
           Reference {row.payment.reference}. If nothing happens in a few seconds, press the button above.
         </p>
       </div>
-      {/* Sends the form by itself, while keeping the button for anyone with JavaScript off. */}
-      <script dangerouslySetInnerHTML={{ __html: `setTimeout(function(){var f=document.getElementById('payfast');if(f)f.submit();},700)` }} />
+      {/* Sends the form by itself, while keeping the button for anyone with JavaScript off.
+          On a local machine it waits, so the warning above can be read first. */}
+      {local ? null : (
+        <script dangerouslySetInnerHTML={{ __html: `setTimeout(function(){var f=document.getElementById('payfast');if(f)f.submit();},700)` }} />
+      )}
     </main>
   );
 }

@@ -5,7 +5,7 @@ import { db, schema } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/session";
 import { Badge, EmptyState, FilterBar, PageHeader, Pager, Panel, StatCard, Table } from "@/components/admin/ui";
 import { formatDate } from "@/lib/utils";
-import { formatPrice, payfastConfig } from "@/lib/payments/payfast";
+import { checkPayfastReachable, formatPrice, payfastConfig, siteIsLocal } from "@/lib/payments/payfast";
 import { absoluteUrl } from "@/lib/utils";
 
 /*
@@ -68,6 +68,8 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
   const countOf = (s: string) => counts.find((c) => c.status === s)?.n ?? 0;
   const paidTotal = Number(takings?.total ?? 0);
   const cfg = payfastConfig();
+  // Only when asked for: ?check=1 adds a few seconds while PayFast is called.
+  const reach = sp.check === "1" && cfg.ready ? await checkPayfastReachable() : null;
   const link = (over: Record<string, string | number>) => {
     const p = new URLSearchParams();
     const merged = { q, status, page: 1, ...over };
@@ -121,6 +123,33 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
                   : "Real card payments are being taken."}{" "}
                 Merchant {cfg.merchantId}. PayFast sends its confirmations to <code className="rounded bg-mist px-1.5 py-0.5 text-xs">{absoluteUrl("/api/payfast/notify")}</code>.
               </p>
+
+              {siteIsLocal() ? (
+                <p className="mt-3 rounded-xl bg-mist p-3 text-muted">
+                  <strong className="font-semibold text-ink">This copy is running on a computer.</strong> PayFast refuses a payment
+                  whose return address is a laptop, and shows a “403 ERROR, the request could not be satisfied” page instead, so test
+                  payments on the deployed website.
+                </p>
+              ) : null}
+
+              {/* A 403 from PayFast is easier to understand when you can see it here. */}
+              <div className="mt-3">
+                <Link href={link({ check: "1" })} className="btn btn-ghost btn-sm">
+                  Check the connection to PayFast
+                </Link>
+                {reach ? (
+                  <ul className="mt-3 space-y-1 text-muted">
+                    {reach.map((r) => (
+                      <li key={r.url}>
+                        <code className="rounded bg-mist px-1.5 py-0.5 text-xs">{r.url}</code> → {r.status}
+                      </li>
+                    ))}
+                    <li className="pt-1">
+                      “403 blocked” means PayFast’s firewall is refusing this server. Anything else means the connection is fine.
+                    </li>
+                  </ul>
+                ) : null}
+              </div>
             </>
           ) : (
             <>

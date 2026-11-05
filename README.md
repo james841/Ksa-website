@@ -205,6 +205,24 @@ How a payment works:
 Because step 3 does not depend on the learner coming back, someone who closes the browser after
 paying still gets access, and nobody can give themselves access by faking a return link.
 
+**If PayFast shows "403 ERROR. The request could not be satisfied" (CloudFront)**
+
+That page comes from PayFast's own firewall, not from this website. Two causes, in order of
+likelihood:
+
+1. **The payment was started from a computer, not from the live website.** PayFast rejects a
+   payment whose return or notify address is `localhost`. The code now leaves those three
+   addresses out when the site is running locally, so the PayFast page opens for a look, and the
+   checkout page says plainly that a local payment cannot unlock the course. Real testing happens
+   on the deployed site.
+2. **PayFast is refusing the network the payment came from.** Their firewall is strict about
+   traffic from outside South Africa. Open `https://sandbox.payfast.co.za/eng/process` in a plain
+   browser tab: if that alone returns 403, the block is on the connection, not on the code. Try
+   another network, or ask PayFast support to allow the address.
+
+**Admin → Course payments → "Check the connection to PayFast"** calls PayFast from the server and
+prints the status of each address, so a block shows up as "403 blocked" rather than as a mystery.
+
 Put these in `.env` locally and in the Vercel settings:
 
 ```

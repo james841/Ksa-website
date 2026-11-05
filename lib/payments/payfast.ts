@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { promises as dns } from "node:dns";
-import { absoluteUrl } from "@/lib/utils";
+import { absoluteUrl, siteUrl } from "@/lib/utils";
 
 /*
  * PayFast (South Africa).
@@ -23,6 +23,23 @@ export const PAYFAST_LIVE = "https://www.payfast.co.za/eng/process";
 export const PAYFAST_SANDBOX = "https://sandbox.payfast.co.za/eng/process";
 const VALIDATE_LIVE = "https://www.payfast.co.za/eng/query/validate";
 const VALIDATE_SANDBOX = "https://sandbox.payfast.co.za/eng/query/validate";
+/* PayFast has been answering 403 on the www validate address for some merchants.
+ * api.payfast.co.za serves the same check, so it is tried if www refuses. */
+const VALIDATE_FALLBACK = "https://api.payfast.co.za/eng/query/validate";
+
+/**
+ * True when the website is running on a computer rather than on a real address.
+ *
+ * It matters here: PayFast sits behind a firewall that rejects a payment whose
+ * return, cancel or notify address points at localhost, and the whole page then
+ * comes back as "403 ERROR. The request could not be satisfied." from CloudFront.
+ * On a local machine those three fields are therefore left out, so the payment
+ * page still opens for a look. PayFast cannot reach a laptop anyway, so no access
+ * is granted from a local test: that part has to be tested on the live website.
+ */
+export function siteIsLocal() {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:|\/|$)/i.test(siteUrl);
+}
 
 /** PayFast's own servers. The ITN must come from one of these. */
 const PAYFAST_HOSTS = ["www.payfast.co.za", "sandbox.payfast.co.za", "w1w.payfast.co.za", "w2w.payfast.co.za"];
@@ -72,13 +89,16 @@ export function checkoutFields(o: {
   courseSlug: string;
 }) {
   const { merchantId, merchantKey, passphrase, sandbox } = payfastConfig();
+  const local = siteIsLocal();
   // PayFast reads these in the order given, and the signature must use the same order.
+  // Empty values are dropped from both the form and the signature, so leaving the
+  // three addresses out on a local machine keeps the two in step (see siteIsLocal).
   const fields: Array<[string, string]> = [
     ["merchant_id", merchantId],
     ["merchant_key", merchantKey],
-    ["return_url", absoluteUrl(`/courses/${o.courseSlug}?payment=done`)],
-    ["cancel_url", absoluteUrl(`/courses/${o.courseSlug}?payment=cancelled`)],
-    ["notify_url", absoluteUrl("/api/payfast/notify")],
+    ["return_url", local ? "" : absoluteUrl(`/courses/${o.courseSlug}?payment=done`)],
+    ["cancel_url", local ? "" : absoluteUrl(`/courses/${o.courseSlug}?payment=cancelled`)],
+    ["notify_url", local ? "" : absoluteUrl("/api/payfast/notify")],
     ["name_first", (o.firstName ?? "").slice(0, 100)],
     ["email_address", (o.email ?? "").slice(0, 100)],
     ["m_payment_id", o.reference],
@@ -87,7 +107,10 @@ export function checkoutFields(o: {
     ["item_description", (o.itemDescription ?? "").slice(0, 255)],
   ];
   const sig = signature(fields, passphrase);
-  return { action: sandbox ? PAYFAST_SANDBOX : PAYFAST_LIVE, fields: [...fields, ["signature", sig] as [string, string]] };
+  // PayFast ignores blank fields, and the signature above skips them too, so the
+  // form must not post them either or the two no longer agree.
+  const filled = fields.filter(([, v]) => v !== "");
+  return { action: sandbox ? PAYFAST_SANDBOX : PAYFAST_LIVE, fields: [...filled, ["signature", sig] as [string, string]], local };
 }
 
 /* ───────────────────────── Checking an ITN ───────────────────────── */
@@ -110,16 +133,54 @@ async function fromPayfast(ip: string | null) {
   return lists.flat().includes(ip);
 }
 
-/** PayFast confirms the data really came from them. */
+/** A request PayFast's firewall is happy with: form encoded, with a named sender. */
+const PAYFAST_HEADERS = {
+  "Content-Type": "application/x-www-form-urlencoded",
+  "User-Agent": "KnowledgeSpaceAcademy/1.0 (+https://knowledgespaceacademy.com)",
+  Accept: "text/plain, */*",
+};
+
+/**
+ * PayFast confirms the data really came from them.
+ *
+ * The www address has been answering 403 for some merchants, so api.payfast.co.za
+ * is tried next; it runs the same check. A 403 from both is reported as a refusal
+ * rather than a pass, so a payment is never granted on a check that did not run.
+ */
 async function confirmWithPayfast(body: Record<string, string>) {
   const { sandbox } = payfastConfig();
-  const res = await fetch(sandbox ? VALIDATE_SANDBOX : VALIDATE_LIVE, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(body).toString(),
-  });
-  const text = (await res.text()).trim();
-  return text.startsWith("VALID");
+  const urls = sandbox ? [VALIDATE_SANDBOX] : [VALIDATE_LIVE, VALIDATE_FALLBACK];
+  const form = new URLSearchParams(body).toString();
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { method: "POST", headers: PAYFAST_HEADERS, body: form });
+      const text = (await res.text()).trim();
+      if (res.ok && text.startsWith("VALID")) return true;
+      console.error(`[payfast] ${url} answered ${res.status}: ${text.slice(0, 120)}`);
+    } catch (e) {
+      console.error(`[payfast] could not reach ${url}: ${(e as Error).message}`);
+    }
+  }
+  return false;
+}
+
+/**
+ * Can this server reach PayFast at all? Used by the admin page so a 403 or a
+ * blocked network shows up as a plain sentence instead of a failed payment.
+ */
+export async function checkPayfastReachable(): Promise<{ url: string; status: string }[]> {
+  const { sandbox } = payfastConfig();
+  const urls = sandbox ? [PAYFAST_SANDBOX, VALIDATE_SANDBOX] : [PAYFAST_LIVE, VALIDATE_LIVE, VALIDATE_FALLBACK];
+  return Promise.all(
+    urls.map(async (url) => {
+      try {
+        const res = await fetch(url, { method: "GET", headers: PAYFAST_HEADERS, signal: AbortSignal.timeout(8000) });
+        return { url, status: res.status === 403 ? "403 blocked" : `${res.status} ${res.ok ? "reachable" : ""}`.trim() };
+      } catch (e) {
+        return { url, status: `could not connect (${(e as Error).message})` };
+      }
+    }),
+  );
 }
 
 export type ItnCheck = { ok: true } | { ok: false; reason: string };
