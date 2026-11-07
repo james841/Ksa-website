@@ -21,14 +21,19 @@ const csp = [
   /*
    * The checkout page posts the signed payment form to PayFast.
    *
-   * Every payfast.co.za address has to be allowed, not just the one the form posts
-   * to: PayFast answers that post with a redirect to its payment engine, which sits
-   * on another host of theirs (payfast.co.za without www, and w1w/w2w under load).
-   * The browser checks this rule again on the redirect, and when the new host is not
-   * listed it blocks the whole thing and reports the FIRST address instead of the
-   * one that failed. The result is a button that looks like it does nothing at all.
+   * Both PayFast domains have to be allowed, not just the one the form posts to.
+   * The form posts to www.payfast.co.za, and PayFast answers with a redirect to its
+   * payment engine on payment.payfast.io, a different domain altogether. The browser
+   * checks this rule again on that redirect, and when the new host is not listed it
+   * blocks the whole hand-off and reports the FIRST address instead of the one that
+   * failed, which makes the allowed address look like the problem. The result is a
+   * "Continue to PayFast" button that appears to do nothing at all.
+   *
+   * Verified on the live site: www.payfast.co.za/eng/process → 302 →
+   * payment.payfast.io/eng/process/payment/<id>. The sandbox keeps the whole flow on
+   * sandbox.payfast.co.za, which is why test payments worked while live ones did not.
    */
-  "form-action 'self' https://payfast.co.za https://*.payfast.co.za",
+  "form-action 'self' https://payfast.co.za https://*.payfast.co.za https://payfast.io https://*.payfast.io",
   "base-uri 'self'",
   "object-src 'none'",
   "worker-src 'self' blob:",

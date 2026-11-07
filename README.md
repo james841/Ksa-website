@@ -211,15 +211,18 @@ Open the browser console (F12). If it says *"Sending form data to
 https://www.payfast.co.za/eng/process violates the following Content Security Policy directive:
 form-action …"*, the page's own security policy is blocking the hand-off.
 
-The trap: PayFast answers the form post with a redirect to its payment engine, which runs on
-another of their hosts (`payfast.co.za` with no `www`, and `w1w`/`w2w` when they are busy). The
-browser checks `form-action` again on that redirect, and when the new host is not listed it blocks
-everything and names the *first* address in the message, which looks like the address is already
-allowed. `form-action` in `next.config.ts` therefore lists the whole family:
+The trap: the form posts to `www.payfast.co.za`, and PayFast answers with a redirect to its payment
+engine on **`payment.payfast.io`**, a different domain altogether. The browser checks `form-action`
+again on that redirect, and when the new host is not listed it blocks the whole hand-off and names
+the *first* address in the message, so the address that is already allowed looks like the culprit.
+`form-action` in `next.config.ts` therefore lists both domains:
 
 ```
-form-action 'self' https://payfast.co.za https://*.payfast.co.za
+form-action 'self' https://payfast.co.za https://*.payfast.co.za https://payfast.io https://*.payfast.io
 ```
+
+The sandbox keeps the whole flow on `sandbox.payfast.co.za`, so test payments can work while live
+ones silently fail. If you ever change this line, test a **live** payment, not only a sandbox one.
 
 A wrong merchant ID, key or passphrase does **not** look like this: PayFast then answers with a
 visible error page instead, because no redirect happens.
