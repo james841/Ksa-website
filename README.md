@@ -205,6 +205,25 @@ How a payment works:
 Because step 3 does not depend on the learner coming back, someone who closes the browser after
 paying still gets access, and nobody can give themselves access by faking a return link.
 
+**If the "Continue to PayFast" button does nothing at all**
+
+Open the browser console (F12). If it says *"Sending form data to
+https://www.payfast.co.za/eng/process violates the following Content Security Policy directive:
+form-action …"*, the page's own security policy is blocking the hand-off.
+
+The trap: PayFast answers the form post with a redirect to its payment engine, which runs on
+another of their hosts (`payfast.co.za` with no `www`, and `w1w`/`w2w` when they are busy). The
+browser checks `form-action` again on that redirect, and when the new host is not listed it blocks
+everything and names the *first* address in the message, which looks like the address is already
+allowed. `form-action` in `next.config.ts` therefore lists the whole family:
+
+```
+form-action 'self' https://payfast.co.za https://*.payfast.co.za
+```
+
+A wrong merchant ID, key or passphrase does **not** look like this: PayFast then answers with a
+visible error page instead, because no redirect happens.
+
 **If PayFast shows "403 ERROR. The request could not be satisfied" (CloudFront)**
 
 That page comes from PayFast's own firewall, not from this website. Two causes, in order of

@@ -18,8 +18,17 @@ const csp = [
   "media-src 'self' https:",
   "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com https://iframe.mediadelivery.net",
   "frame-ancestors 'self'",
-  // The checkout page posts the signed payment form to PayFast.
-  "form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za",
+  /*
+   * The checkout page posts the signed payment form to PayFast.
+   *
+   * Every payfast.co.za address has to be allowed, not just the one the form posts
+   * to: PayFast answers that post with a redirect to its payment engine, which sits
+   * on another host of theirs (payfast.co.za without www, and w1w/w2w under load).
+   * The browser checks this rule again on the redirect, and when the new host is not
+   * listed it blocks the whole thing and reports the FIRST address instead of the
+   * one that failed. The result is a button that looks like it does nothing at all.
+   */
+  "form-action 'self' https://payfast.co.za https://*.payfast.co.za",
   "base-uri 'self'",
   "object-src 'none'",
   "worker-src 'self' blob:",

@@ -76,6 +76,12 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[id]
         <p className="mt-4 text-xs text-muted">
           Reference {row.payment.reference}. If nothing happens in a few seconds, press the button above.
         </p>
+        {/* Named out loud: when a payment goes nowhere, the first thing to know is
+            which PayFast address it was sent to, and whether it was a test. */}
+        <p className="mt-1 text-xs text-muted">
+          Going to {new URL(action).host}
+          {action.includes("sandbox") ? " (test mode, no real money)" : ""}
+        </p>
       </div>
       {/* Sends the form by itself, while keeping the button for anyone with JavaScript off.
           On a local machine it waits, so the warning above can be read first. */}
