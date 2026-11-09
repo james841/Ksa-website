@@ -447,5 +447,54 @@ export const homeHighlights = [
   },
 ];
 
+/* ─────────────────── Verified company facts ───────────────────
+ *
+ * Every number below comes from the client's own "Our Story" document, which is
+ * the only approved source for figures about the academy. Nothing here is an
+ * estimate or a rounding of something else, and nothing should be added to this
+ * list that the client has not confirmed in writing. The earlier homepage figures
+ * ("about a decade", "8 specialist services") were not from the client and have
+ * been removed.
+ */
+
+export const companyStats = [
+  { big: "8+ years", small: "sharing research knowledge", note: "Our seminars began in August 2018." },
+  { big: "9", small: "institutional writing programmes", note: "Writing retreats and publication workshops delivered since 2022." },
+  { big: "120+", small: "writing programme participant places", note: "Recorded across eight programmes with available attendance figures." },
+  { big: "10", small: "free webinars", note: "Delivered since April 2026." },
+  { big: "500+", small: "webinar registrations", note: "Recorded across our free webinars since April 2026." },
+];
+
+/** The short version for the homepage: four figures, no explanatory notes. */
+export const homeStats = companyStats.filter((s) => s.small !== "free webinars");
+
+export const companyIntro =
+  "Since our first seminars in August 2018, Knowledge Space Academy has supported researchers through institutional writing programmes, doctoral mentoring, practical training and free webinars.";
+
+export const milestones = [
+  { year: "2018", title: "Our first seminars", text: "Our research learning journey began in August." },
+  {
+    year: "2022",
+    title: "Institutional writing programmes began",
+    text: "Dedicated space and structured support to help researchers develop manuscripts for publication.",
+  },
+  { year: "2023", title: "Official registration", text: "A formal milestone in our continuing commitment to research development." },
+  { year: "2026", title: "Expanding access", text: "Ten free webinars delivered since April, recording more than 500 registrations." },
+];
+
+/** Training and mentoring actually delivered, as recorded by the client. */
+export const practicalSupport = [
+  { lead: "6+ doctoral mentoring sessions in 2026", text: "Alongside earlier sessions covering NVivo, quantitative research and mixed methods." },
+  { lead: "5 sessions delivered as a full NVivo training package in 2026", text: "A complete package, run as a series rather than one-off help." },
+  { lead: "1 full-day introductory NVivo training programme", text: "A single day for researchers starting out with the software." },
+];
+
+export const residency = {
+  title: "Five days. A clear goal: a manuscript ready for submission.",
+  body: "Our curated five-day residential writing programme is designed to help each attendee finalise a manuscript for submission to a DHET-accredited journal. Protected writing time, structured guidance and focused feedback turn the residency into a practical working space, with participants working towards a concrete publication milestone.",
+  caveat:
+    "The goal is a submission-ready manuscript. Each participant's progress depends on their starting draft, the readiness of their research and the revisions required; publication remains subject to the journal's editorial and peer-review processes.",
+};
+
 export const marketingConsentText =
   "I would like to receive research tips, webinar announcements, course updates and other emails from Knowledge Space Academy. I can unsubscribe at any time.";

@@ -3,16 +3,10 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { Seal } from "@/components/ui/seal";
 import { ArrowRight } from "@/components/ui/icons";
+import { companyIntro, homeStats } from "@/lib/content";
 import chapters from "@/public/images/services/chapters-blue.webp";
 import qualitative from "@/public/images/services/qualitative-blue.webp";
 import proposal from "@/public/images/services/proposal-blue.webp";
-
-const facts = [
-  { big: "About a decade", small: "of research support" },
-  { big: "8", small: "specialist research services" },
-  { big: "All", small: "disciplines supported" },
-  { big: "Free", small: "monthly research webinars" },
-];
 
 export function AboutPreview() {
   return (
@@ -29,10 +23,13 @@ export function AboutPreview() {
             <div className="relative col-span-2 row-span-3 overflow-hidden rounded-[1.6rem] bg-blue-50">
               <Image src={proposal} alt="A research proposal checklist with most items completed" fill sizes="(max-width: 1024px) 40vw, 260px" className="lite-hide object-cover" />
             </div>
-            <div className="col-span-3 row-span-2 flex items-center gap-4 rounded-[1.6rem] bg-mist p-5 sm:p-6">
-              <p className="font-display text-[clamp(1.25rem,2.4vw,1.6rem)] leading-tight text-ink">
+            {/* The one dark block on a white page: it anchors the collage and gives the
+                promise somewhere to land, instead of sitting in another pale box. */}
+            <div className="col-span-3 row-span-2 flex flex-col justify-center rounded-[1.6rem] bg-ink p-5 sm:p-6">
+              <p className="font-display text-[clamp(1.25rem,2.4vw,1.6rem)] leading-tight text-white">
                 &ldquo;We take you to the finish line.&rdquo;
               </p>
+              <span aria-hidden className="mt-4 block h-[2px] w-10 bg-sky" />
             </div>
           </div>
           <Seal className="absolute -bottom-6 left-1/2 size-24 -translate-x-1/2 drop-shadow-xl sm:size-28 lg:left-[58%]" />
@@ -44,22 +41,19 @@ export function AboutPreview() {
             <h2 id="about-title" className="mt-4 section-title">
               Research support that keeps you moving towards completion
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-muted">
-              We guide postgraduate students and researchers at every stage, from choosing a topic to publishing the
-              finished work. Our team of PhD-qualified specialists works across all disciplines, with precision,
-              integrity and care.
-            </p>
+            <p className="mt-6 text-lg leading-relaxed text-muted">{companyIntro}</p>
           </Reveal>
 
           <Reveal delay={0.1}>
-            {/* Hairline grid: the numbers are separated by rules, the way a report sets out figures. */}
+            {/* Hairline grid: the numbers are separated by rules, the way a report sets out
+                figures. Every figure here comes from the client's own record (lib/content.ts). */}
             <dl className="mt-10 grid grid-cols-2 border-t border-line">
-              {facts.map((f, i) => (
+              {homeStats.map((f, i) => (
                 <div key={f.small} className={`py-6 ${i % 2 === 0 ? "pr-6" : "border-l border-line pl-6"} ${i > 1 ? "border-t border-line" : ""}`}>
                   <dt className="sr-only">{f.small}</dt>
                   <dd>
                     <span className="block font-display text-3xl leading-none text-ink sm:text-[2.1rem]">{f.big}</span>
-                    <span className="mt-2 block text-sm text-muted">{f.small}</span>
+                    <span className="mt-2 block text-sm leading-snug text-muted">{f.small}</span>
                   </dd>
                 </div>
               ))}

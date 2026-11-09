@@ -88,7 +88,8 @@ export function CourseRail({ courses }: { courses: CourseListItem[] }) {
   const arrow = "grid size-11 place-items-center rounded-full border border-line bg-white text-ink transition-colors hover:border-blue hover:bg-blue hover:text-white disabled:opacity-40";
 
   return (
-    <div ref={sectionRef} className="mt-24">
+    // The rail now sits in a section of its own, so it carries no top margin.
+    <div ref={sectionRef}>
       <Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="kicker">Self-paced online courses</p>

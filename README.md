@@ -119,6 +119,18 @@ which is handy while testing.
 
 ## 3. How the website works
 
+### Facts and figures about the academy
+
+Every number the website states about KSA (years, programmes, participants, webinars,
+registrations), the milestones from 2018 to 2026, the five-day residency wording and the
+training delivered all live in one place: the "Verified company facts" block near the bottom of
+`lib/content.ts`. They come from the client's own *Our Story* document.
+
+Change them there and the homepage and About page both follow. Do not write a figure straight
+into a page, and do not round one up: if a number is not in that block, the client has not
+confirmed it.
+
+
 ### Public website
 | Page | What is on it |
 | --- | --- |
@@ -390,8 +402,13 @@ Before going live: use a long random `CRON_SECRET`, a strong `ADMIN_PASSWORD`, s
 
 - Unique title, description, keywords, canonical URL, Open Graph and Twitter card on every page.
 - Structured data: EducationalOrganization, WebSite, BreadcrumbList, FAQPage, Course, Event (webinars) and Service.
-- `sitemap.xml` (includes webinars and courses from the database), `robots.txt` (blocks admin, dashboard and API), web manifest, icons, social share image.
-- Semantic headings, alt text, fast Core Web Vitals, mobile-first layout.
+- `sitemap.xml` lists every public page and carries a **last-changed date** for each webinar and
+  course, read straight from the database, so Google re-reads a page the day after it is edited.
+  It leaves out everything private and never fails the page if the database hiccups.
+- `robots.txt` keeps search engines out of the admin, a learner's dashboard, the course player,
+  the checkout, the API and one-time email links.
+- Web manifest, icons, social share image, semantic headings, alt text, fast Core Web Vitals,
+  mobile-first layout.
 
 After launch: add the site to **Google Search Console**, submit `https://yourdomain.com/sitemap.xml`,
 and set `NEXT_PUBLIC_SITE_URL` to your real domain.

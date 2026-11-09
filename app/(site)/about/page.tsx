@@ -4,9 +4,10 @@ import { PageHero } from "@/components/ui/page-hero";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { CtaBand } from "@/components/home/faq-cta";
 import { AdvisoryBoard } from "@/components/about/advisory-board";
+import { Milestones, PracticalSupport, Residency, StatsBand } from "@/components/about/story";
 import { Journey } from "@/components/home/journey";
 import { Seal } from "@/components/ui/seal";
-import { whyChooseUs } from "@/lib/content";
+import { companyIntro, whyChooseUs } from "@/lib/content";
 import { getBoard } from "@/lib/data/public";
 import editing from "@/public/images/services/editing-blue.webp";
 import topic from "@/public/images/services/topic-blue.webp";
@@ -14,7 +15,7 @@ import topic from "@/public/images/services/topic-blue.webp";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Knowledge Space Academy is an academic research and writing consultancy providing expert research, data analysis and academic writing support to NGOs, researchers and postgraduate students.",
+    "Since our first seminars in August 2018, Knowledge Space Academy has supported researchers through institutional writing programmes, doctoral mentoring, practical training and free webinars.",
   alternates: { canonical: "/about" },
   openGraph: { url: "/about" },
 };
@@ -26,9 +27,11 @@ export default async function AboutPage() {
       <PageHero
         crumbs={[{ name: "About us", path: "/about" }]}
         kicker="About Knowledge Space Academy"
-        title="We provide expert research, data analysis and academic writing support"
-        lead="For NGOs, researchers and postgraduate students. With about a decade of experience, our specialised research support programmes have helped postgraduate students complete their degrees efficiently, in record time."
+        title="Research support. Focused writing. Practical progress."
+        lead={companyIntro}
       />
+
+      <StatsBand />
 
       <section className="bg-white py-20 sm:py-24">
         <div className="container-x grid items-start gap-14 lg:grid-cols-12">
@@ -43,9 +46,9 @@ export default async function AboutPage() {
             </Reveal>
             <Reveal>
               <p>
-                Our bespoke consulting approach has supported countless scholars, researchers and authors in achieving their
-                academic and professional goals. We are driven by a core mission: to help scholars overcome barriers and
-                challenges to research completion. We take you to the finish line.
+                We work with scholars, researchers and authors towards their academic and professional goals, driven by a
+                core mission: to help them overcome the barriers that stand between a piece of research and its completion.
+                We take you to the finish line.
               </p>
             </Reveal>
             <Reveal>
@@ -77,6 +80,9 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      <Residency />
+      <PracticalSupport />
+
       <section id="why" className="paper-grain scroll-mt-28 bg-mist py-20 sm:py-24">
         <div className="container-x">
           <Reveal className="max-w-2xl">
@@ -101,6 +107,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      <Milestones />
       <Journey />
       <AdvisoryBoard board={board} tone="white" />
       <div className="pt-20 sm:pt-24">
