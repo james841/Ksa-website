@@ -1,5 +1,6 @@
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { companyStats, milestones, practicalSupport, residency } from "@/lib/content";
+import { CountUp } from "@/components/ui/count-up";
+import { companyPillars, companyStats, milestones, practicalSupport, residency } from "@/lib/content";
 
 /*
  * The parts of the About page that carry the academy's record: the figures, the
@@ -11,23 +12,55 @@ import { companyStats, milestones, practicalSupport, residency } from "@/lib/con
  * programme produces a manuscript ready to submit, not a guaranteed publication.
  */
 
-/** The five figures, as a band of hairline-separated columns. */
-export function StatsBand() {
+/**
+ * The figures, in boxes outlined in the academy's blue, each number counting up
+ * from zero the first time it comes into view.
+ *
+ * `compact` drops the explanatory third line and shows four of the five, which
+ * is the version the homepage uses beside the about text.
+ */
+export function StatsBand({ compact = false, tone = "white" }: { compact?: boolean; tone?: "white" | "mist" }) {
+  const stats = compact ? companyStats.filter((s) => s.small !== "Free webinars") : companyStats;
   return (
-    <section aria-labelledby="record-title" className="border-y border-line bg-white py-14 sm:py-16">
+    <section aria-labelledby="record-title" className={`${tone === "mist" ? "bg-mist" : "bg-white"} py-14 sm:py-16`}>
       <div className="container-x">
         <h2 id="record-title" className="sr-only">
           Our record
         </h2>
-        <RevealGroup className="grid gap-y-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-y-0">
-          {companyStats.map((s, i) => (
+        <RevealGroup className={`grid gap-4 sm:grid-cols-2 ${compact ? "lg:grid-cols-4" : "lg:grid-cols-5"}`}>
+          {stats.map((s) => (
             <RevealItem
               key={s.small}
-              className={`px-0 sm:px-7 lg:px-6 ${i > 0 ? "sm:border-l sm:border-line" : ""} ${i === 2 ? "lg:border-l" : "sm:even:border-l"} first:sm:pl-0 last:lg:pr-0`}
+              className="group h-full rounded-[1.25rem] border border-blue/35 bg-white p-6 transition-[border-color,transform,box-shadow] duration-300 hover:-translate-y-1 hover:border-blue hover:shadow-lift"
             >
-              <p className="font-display text-[clamp(1.9rem,3.2vw,2.4rem)] leading-none text-ink">{s.big}</p>
-              <p className="mt-2.5 font-display text-[0.95rem] leading-snug text-ink">{s.small}</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{s.note}</p>
+              {/* A short rule in the brand blue above each figure, growing on hover. */}
+              <span aria-hidden className="block h-[3px] w-9 bg-blue transition-[width] duration-300 group-hover:w-14" />
+              <p className="mt-5 font-display text-[clamp(2rem,3.4vw,2.6rem)] font-bold leading-none text-blue">
+                <CountUp value={s.value} suffix={s.suffix} />
+                {s.unit ? <span className="ml-1.5 text-[0.95rem] font-semibold">{s.unit}</span> : null}
+              </p>
+              <p className="mt-3 font-display text-[0.98rem] leading-snug text-ink">{s.small}</p>
+              {compact ? null : <p className="mt-2 text-sm leading-relaxed text-muted">{s.note}</p>}
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * "Research support. Focused writing. Practical progress." set as the three
+ * things it is, rather than buried in one line of a heading.
+ */
+export function Pillars({ tone = "mist" }: { tone?: "white" | "mist" }) {
+  return (
+    <section aria-label="What we do" className={`${tone === "mist" ? "bg-mist" : "bg-white"} py-10`}>
+      <div className="container-x">
+        <RevealGroup className="grid gap-px overflow-hidden rounded-[1.25rem] border border-blue/35 bg-blue/20 sm:grid-cols-3">
+          {companyPillars.map((p) => (
+            <RevealItem key={p} className={`${tone === "mist" ? "bg-mist" : "bg-white"} px-6 py-7 text-center`}>
+              <p className="font-display text-[1.15rem] font-semibold leading-snug text-ink sm:text-[1.25rem]">{p}</p>
             </RevealItem>
           ))}
         </RevealGroup>
@@ -72,15 +105,16 @@ export function PracticalSupport() {
             Practical support across the research journey
           </h2>
         </Reveal>
-        <RevealGroup className="mt-12 grid gap-5 lg:grid-cols-3">
-          {practicalSupport.map((p) => (
-            <RevealItem
-              key={p.lead}
-              className="group h-full rounded-[1.4rem] bg-mist p-7 ring-1 ring-line transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift"
-            >
-              <span aria-hidden className="block h-[2px] w-10 bg-blue transition-[width] duration-300 group-hover:w-16" />
-              <p className="mt-6 font-display text-xl leading-snug text-ink">{p.lead}</p>
-              <p className="mt-3 leading-relaxed text-muted">{p.text}</p>
+        {/* A list, because the client's document lists it: one line each, in order,
+            with the figure leading. No invented explanation is added under them. */}
+        <RevealGroup as="ul" className="mt-10 max-w-3xl divide-y divide-line border-y border-line">
+          {practicalSupport.map((p, i) => (
+            <RevealItem as="li" key={p.lead} className="group flex gap-5 py-6">
+              <span className="mt-1 font-display text-sm font-semibold tracking-[0.18em] text-blue">{String(i + 1).padStart(2, "0")}</span>
+              <p className="text-[1.05rem] leading-relaxed text-ink">
+                <strong className="font-display font-semibold">{p.lead}</strong>
+                {p.text ? <span className="text-muted">, {p.text}</span> : "."}
+              </p>
             </RevealItem>
           ))}
         </RevealGroup>

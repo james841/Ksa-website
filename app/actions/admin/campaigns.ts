@@ -92,6 +92,22 @@ export async function unscheduleCampaign(fd: FormData) {
   refresh();
 }
 
+/**
+ * Picks a send back up where it stopped.
+ *
+ * A send happens in the background after the page has answered, so a hosting
+ * time limit, a restart or an error can leave a campaign sitting on "sending".
+ * This starts it again. Only addresses still queued are sent, so nobody who has
+ * already received the email gets it a second time.
+ */
+export async function resumeCampaign(fd: FormData) {
+  const admin = await guard("campaigns");
+  const id = str(fd, "id");
+  await audit(admin.id, "resume", "campaign", id);
+  after(() => sendCampaign(id));
+  refresh();
+}
+
 export async function retryCampaign(fd: FormData) {
   const admin = await guard("campaigns");
   const id = str(fd, "id");

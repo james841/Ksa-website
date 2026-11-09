@@ -427,6 +427,9 @@ export const emailCampaigns = pgTable("email_campaigns", {
   totalRecipients: integer("total_recipients").default(0).notNull(),
   sentCount: integer("sent_count").default(0).notNull(),
   failedCount: integer("failed_count").default(0).notNull(),
+  // Why a send stopped, so a failure explains itself in the admin instead of
+  // leaving the campaign sitting on "sending" with nothing to go on.
+  error: text("error"),
   createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
   ...timestamps,
 });

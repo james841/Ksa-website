@@ -4,7 +4,7 @@ import { asc, count, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/session";
 import { renderCampaign, resolveAudience } from "@/lib/campaigns";
-import { deleteCampaign, duplicateCampaign, retryCampaign, scheduleCampaign, sendCampaignNow, sendCampaignTest, unscheduleCampaign } from "@/app/actions/admin/campaigns";
+import { deleteCampaign, duplicateCampaign, resumeCampaign, retryCampaign, scheduleCampaign, sendCampaignNow, sendCampaignTest, unscheduleCampaign } from "@/app/actions/admin/campaigns";
 import { ActionButton, AdminForm, ConfirmAction } from "@/components/admin/forms";
 import { Badge, PageHeader, Panel, StatCard, Table } from "@/components/admin/ui";
 import { CampaignForm } from "@/components/admin/campaign-form";
@@ -134,10 +134,29 @@ export default async function CampaignDetail({ params, searchParams }: PageProps
             </>
           ) : c.status === "sending" ? (
             <Panel title="Sending">
-              <p className="text-sm text-muted">Emails are going out in batches of 100. Refresh this page to see progress.</p>
+              {/* Progress in plain numbers, and a way out: sending happens in the
+                  background, so a hosting time limit or a restart can leave a
+                  campaign stuck here with nothing to press. */}
+              <p className="text-sm text-muted">
+                Emails go out in batches of 100. <strong className="text-ink">{stat("sent") + stat("delivered")}</strong> sent so far,{" "}
+                <strong className="text-ink">{stat("queued")}</strong> still to go
+                {stat("failed") ? <>, {stat("failed")} failed</> : null}. Refresh this page to see progress.
+              </p>
+              {stat("queued") ? (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-mist p-4">
+                  <p className="text-sm text-muted">
+                    Stopped partway? Start it again. Only the {stat("queued")} still waiting are sent, so nobody receives it twice.
+                  </p>
+                  <ActionButton action={resumeCampaign} hidden={{ id: c.id }} variant="dark" success="Picking up where it stopped">
+                    Resume sending
+                  </ActionButton>
+                </div>
+              ) : null}
             </Panel>
           ) : stat("failed") ? (
             <Panel title="Some emails failed">
+              {/* The reason, in the provider's own words, so the fix is obvious. */}
+              {c.error ? <p className="mb-4 rounded-xl bg-mist p-4 text-sm text-ink">{c.error}</p> : null}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-muted">Retry only the {stat("failed")} failed addresses. Nobody receives it twice.</p>
                 <ActionButton action={retryCampaign} hidden={{ id: c.id }} variant="dark" success="Retrying the failed addresses">

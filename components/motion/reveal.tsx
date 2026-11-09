@@ -34,9 +34,21 @@ export function Reveal({
 }
 
 /** Staggers its direct <RevealItem> children. */
-export function RevealGroup({ children, className, stagger = 0.08 }: { children: ReactNode; className?: string; stagger?: number }) {
+export function RevealGroup({
+  children,
+  className,
+  stagger = 0.08,
+  as = "div",
+}: {
+  children: ReactNode;
+  className?: string;
+  stagger?: number;
+  /** Use "ul" when the children really are a list, so the markup says so. */
+  as?: "div" | "ul" | "ol";
+}) {
+  const Comp = m[as];
   return (
-    <m.div
+    <Comp
       className={className}
       initial="hidden"
       whileInView="show"
@@ -44,17 +56,26 @@ export function RevealGroup({ children, className, stagger = 0.08 }: { children:
       variants={{ hidden: {}, show: { transition: { staggerChildren: stagger } } }}
     >
       {children}
-    </m.div>
+    </Comp>
   );
 }
 
-export function RevealItem({ children, className }: { children: ReactNode; className?: string }) {
+export function RevealItem({
+  children,
+  className,
+  as = "div",
+}: {
+  children: ReactNode;
+  className?: string;
+  as?: "div" | "li" | "article";
+}) {
+  const Comp = m[as];
   return (
-    <m.div
+    <Comp
       className={className}
       variants={{ hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease } } }}
     >
       {children}
-    </m.div>
+    </Comp>
   );
 }

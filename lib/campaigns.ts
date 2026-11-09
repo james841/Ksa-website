@@ -59,12 +59,32 @@ export async function sendTestEmail(c: EmailCampaign, to: string) {
   return { ok: !error, error: error?.message };
 }
 
-/** Sends a campaign in batches of 100. Safe to call again: already-sent recipients are skipped. */
+/**
+ * Sends a campaign in batches of 100. Safe to call again: already-sent recipients
+ * are skipped, so a half-finished send can simply be started again.
+ *
+ * Anything thrown on the way marks the campaign as failed with the reason, rather
+ * than leaving it stuck on "sending" with no way out of it in the admin.
+ */
 export async function sendCampaign(campaignId: string) {
+  try {
+    await runCampaign(campaignId);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[campaign] send stopped", msg);
+    await db
+      .update(schema.emailCampaigns)
+      .set({ status: "failed", error: msg.slice(0, 500) })
+      .where(eq(schema.emailCampaigns.id, campaignId))
+      .catch(() => {});
+  }
+}
+
+async function runCampaign(campaignId: string) {
   const [c] = await db.select().from(schema.emailCampaigns).where(eq(schema.emailCampaigns.id, campaignId)).limit(1);
   if (!c || c.status === "sent") return;
 
-  await db.update(schema.emailCampaigns).set({ status: "sending" }).where(eq(schema.emailCampaigns.id, c.id));
+  await db.update(schema.emailCampaigns).set({ status: "sending", error: null }).where(eq(schema.emailCampaigns.id, c.id));
   const audience = await resolveAudience(c);
 
   if (audience.length) {

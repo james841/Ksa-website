@@ -4,7 +4,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { CtaBand } from "@/components/home/faq-cta";
 import { AdvisoryBoard } from "@/components/about/advisory-board";
-import { Milestones, PracticalSupport, Residency, StatsBand } from "@/components/about/story";
+import { Milestones, Pillars, PracticalSupport, Residency, StatsBand } from "@/components/about/story";
 import { Journey } from "@/components/home/journey";
 import { Seal } from "@/components/ui/seal";
 import { companyIntro, whyChooseUs } from "@/lib/content";
@@ -31,6 +31,7 @@ export default async function AboutPage() {
         lead={companyIntro}
       />
 
+      <Pillars tone="white" />
       <StatsBand />
 
       <section className="bg-white py-20 sm:py-24">

@@ -457,16 +457,23 @@ export const homeHighlights = [
  * been removed.
  */
 
+/*
+ * Each figure is kept as a number so it can count up on screen, with whatever
+ * follows it ("+", "+ years") held separately. The three lines under it are the
+ * three rows of the client's table, word for word.
+ */
 export const companyStats = [
-  { big: "8+ years", small: "sharing research knowledge", note: "Our seminars began in August 2018." },
-  { big: "9", small: "institutional writing programmes", note: "Writing retreats and publication workshops delivered since 2022." },
-  { big: "120+", small: "writing programme participant places", note: "Recorded across eight programmes with available attendance figures." },
-  { big: "10", small: "free webinars", note: "Delivered since April 2026." },
-  { big: "500+", small: "webinar registrations", note: "Recorded across our free webinars since April 2026." },
+  // "years" is kept apart from the figure so it can be set smaller and the
+  // number does not wrap onto two lines in a narrow box.
+  { value: 8, suffix: "+", unit: "years", small: "Sharing research knowledge", note: "Our seminars began in August 2018." },
+  { value: 9, suffix: "", unit: "", small: "Institutional writing programmes", note: "Writing retreats and publication workshops delivered since 2022." },
+  { value: 120, suffix: "+", unit: "", small: "Writing programme participant places", note: "Recorded across eight programmes with available attendance figures." },
+  { value: 10, suffix: "", unit: "", small: "Free webinars", note: "Delivered since April 2026." },
+  { value: 500, suffix: "+", unit: "", small: "Webinar registrations", note: "Recorded across our free webinars since April 2026." },
 ];
 
-/** The short version for the homepage: four figures, no explanatory notes. */
-export const homeStats = companyStats.filter((s) => s.small !== "free webinars");
+/** The three words the academy leads with, kept as three so they can be set as three. */
+export const companyPillars = ["Research support", "Focused writing", "Practical progress"];
 
 export const companyIntro =
   "Since our first seminars in August 2018, Knowledge Space Academy has supported researchers through institutional writing programmes, doctoral mentoring, practical training and free webinars.";
@@ -482,11 +489,17 @@ export const milestones = [
   { year: "2026", title: "Expanding access", text: "Ten free webinars delivered since April, recording more than 500 registrations." },
 ];
 
-/** Training and mentoring actually delivered, as recorded by the client. */
+/*
+ * Training and mentoring actually delivered, as the client lists it. The bold
+ * part and the rest are split only so the figure can be set larger on screen;
+ * put together they are the client's three bullet points word for word, with
+ * nothing added. An earlier version padded the last two out with explanations
+ * nobody had approved.
+ */
 export const practicalSupport = [
-  { lead: "6+ doctoral mentoring sessions in 2026", text: "Alongside earlier sessions covering NVivo, quantitative research and mixed methods." },
-  { lead: "5 sessions delivered as a full NVivo training package in 2026", text: "A complete package, run as a series rather than one-off help." },
-  { lead: "1 full-day introductory NVivo training programme", text: "A single day for researchers starting out with the software." },
+  { lead: "6+ doctoral mentoring sessions in 2026", text: "alongside earlier sessions covering NVivo, quantitative research and mixed methods." },
+  { lead: "5 sessions delivered as a full NVivo training package in 2026", text: "" },
+  { lead: "1 full-day introductory NVivo training programme", text: "" },
 ];
 
 export const residency = {

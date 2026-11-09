@@ -3,7 +3,11 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { Seal } from "@/components/ui/seal";
 import { ArrowRight } from "@/components/ui/icons";
-import { companyIntro, homeStats } from "@/lib/content";
+import { CountUp } from "@/components/ui/count-up";
+import { companyIntro, companyStats } from "@/lib/content";
+
+/** The homepage shows four of the five figures; the About page shows them all. */
+const homeStats = companyStats.filter((s) => s.small !== "Free webinars");
 import chapters from "@/public/images/services/chapters-blue.webp";
 import qualitative from "@/public/images/services/qualitative-blue.webp";
 import proposal from "@/public/images/services/proposal-blue.webp";
@@ -38,22 +42,30 @@ export function AboutPreview() {
         <div className="order-1 lg:order-2">
           <Reveal>
             <p className="kicker">About Knowledge Space Academy</p>
+            {/* The academy's own line, in the academy's own words. */}
             <h2 id="about-title" className="mt-4 section-title">
-              Research support that keeps you moving towards completion
+              Research support. Focused writing. Practical progress.
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-muted">{companyIntro}</p>
           </Reveal>
 
           <Reveal delay={0.1}>
-            {/* Hairline grid: the numbers are separated by rules, the way a report sets out
-                figures. Every figure here comes from the client's own record (lib/content.ts). */}
-            <dl className="mt-10 grid grid-cols-2 border-t border-line">
-              {homeStats.map((f, i) => (
-                <div key={f.small} className={`py-6 ${i % 2 === 0 ? "pr-6" : "border-l border-line pl-6"} ${i > 1 ? "border-t border-line" : ""}`}>
+            {/* Boxes outlined in the brand blue, each figure counting up the first time
+                it is seen. Every figure comes from the client's own record. */}
+            <dl className="mt-10 grid grid-cols-2 gap-3 sm:gap-4">
+              {homeStats.map((f) => (
+                <div
+                  key={f.small}
+                  className="group rounded-[1.1rem] border border-blue/35 p-5 transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-blue"
+                >
                   <dt className="sr-only">{f.small}</dt>
                   <dd>
-                    <span className="block font-display text-3xl leading-none text-ink sm:text-[2.1rem]">{f.big}</span>
-                    <span className="mt-2 block text-sm leading-snug text-muted">{f.small}</span>
+                    <span aria-hidden className="block h-[3px] w-8 bg-blue transition-[width] duration-300 group-hover:w-12" />
+                    <span className="mt-4 block font-display text-3xl font-bold leading-none text-blue sm:text-[2.1rem]">
+                      <CountUp value={f.value} suffix={f.suffix} />
+                      {f.unit ? <span className="ml-1.5 text-[0.9rem] font-semibold">{f.unit}</span> : null}
+                    </span>
+                    <span className="mt-2.5 block text-sm leading-snug text-muted">{f.small}</span>
                   </dd>
                 </div>
               ))}

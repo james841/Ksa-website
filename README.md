@@ -115,6 +115,80 @@ Form fields ignore those extra attributes, so the message should no longer appea
 Without an API key the site still works: emails are printed in the terminal instead of sent,
 which is handy while testing.
 
+### Switching the live site to your own domain
+
+No code changes are needed. It is DNS plus five settings.
+
+**In Resend → Domains → Add domain → `mykspace.com`.** It shows a handful of DNS records: an MX
+and a TXT (SPF) record for the sending subdomain it suggests, and a long DKIM TXT record. Add
+them where your domain's DNS lives, then press Verify. A DMARC record
+(`_dmarc` TXT, `v=DMARC1; p=none; rua=mailto:you@mykspace.com`) is worth adding too: without one,
+some inboxes treat a brand-new sending domain with suspicion.
+
+**In Vercel → Settings → Environment Variables** (and in your local `.env`):
+
+| Setting | Value |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | `https://mykspace.com` — no slash at the end |
+| `RESEND_API_KEY` | the key from Resend |
+| `EMAIL_FROM` | `Knowledge Space Academy <hello@mykspace.com>` — must be on the verified domain |
+| `ADMIN_NOTIFY_EMAIL` | where alerts about new enquiries and subscribers go |
+| `RESEND_WEBHOOK_SECRET` | optional, for bounce tracking |
+
+Then **add the domain in Vercel → Domains** and **redeploy**. The redeploy matters:
+`NEXT_PUBLIC_SITE_URL` is baked into the pages at build time, and every link in every email, the
+logo at the top of them, the unsubscribe link, the sitemap and the PayFast return address are all
+built from it. Change it without redeploying and the emails keep pointing at the old address.
+
+Two things people trip over:
+
+- **Resend sends mail, it does not receive it.** Verifying `mykspace.com` does not create an
+  inbox at `hello@mykspace.com`. If someone replies, the reply needs somewhere to land, so set up
+  a mailbox with a mail provider (Google Workspace, Zoho and others) using their own MX records.
+- **Every plan has a daily and monthly sending limit.** Check yours in Resend before sending a
+  campaign to the whole list, because a campaign that runs past the limit stops partway through.
+
+### Testing that email works
+
+Work down this list on the **live site**, not on your computer. Without an API key, and on a
+local machine, emails are printed to the terminal instead of being sent, which proves nothing.
+
+Use plus-addressing so you do not need many mailboxes: `yourname+test1@gmail.com` and
+`yourname+test2@gmail.com` both arrive in `yourname@gmail.com` but count as different people to
+the website.
+
+1. **Campaign test send** (half a minute, and it proves the most). Admin → Email campaigns →
+   New → type anything → Send test to your own address. If that arrives, the API key, the
+   from-address and the domain verification are all correct.
+2. **A real sign-up.** Register an account with a fresh address and open the confirmation email.
+   Check the links point at your own domain and that the logo at the top loads.
+3. **Forgot password.** The link should sign you in to set a new one, and work only once.
+4. **Webinar registration**, for the confirmation with the joining details.
+5. **Request a service.** Two emails should result: a receipt to the person who asked, and an
+   alert to `ADMIN_NOTIFY_EMAIL`.
+6. **Subscribe in the footer**, then press unsubscribe in the email you receive next. The
+   address should show as unsubscribed in Admin → Subscribers.
+7. **A real campaign to one person.** Make a subscriber of a test address, send to it, and check
+   the delivery log shows it as sent.
+
+**Where to look when something does not arrive**
+
+- **Resend → Emails** lists every attempt with its status and the reason for any failure. This
+  answers most questions on its own.
+- **Vercel → your project → Logs** shows `[email] send failed` with the message from Resend.
+- Nothing at all in either place means the site never tried: `RESEND_API_KEY` is missing from
+  that environment, or the deploy happened before you added it.
+
+**Checking it will not land in spam.** Send one email to a Gmail address, open it, choose "Show
+original" and confirm SPF, DKIM and DMARC all say PASS. Sending a message to a mailbox checker
+such as mail-tester.com gives the same thing as a score out of ten. Test against Gmail, Outlook
+and Yahoo, because they do not judge a new sending domain the same way.
+
+**Bounce handling.** Resend provides simulation addresses for delivered, bounced and complained
+mail (check their docs for the exact ones). Send a campaign to the bounce one and the address
+should end up unsubscribed automatically, which confirms the webhook and
+`RESEND_WEBHOOK_SECRET` are wired up.
+
 ---
 
 ## 3. How the website works
@@ -129,6 +203,12 @@ training delivered all live in one place: the "Verified company facts" block nea
 Change them there and the homepage and About page both follow. Do not write a figure straight
 into a page, and do not round one up: if a number is not in that block, the client has not
 confirmed it.
+
+Each figure is stored as a real number, with whatever follows it ("+", "years") kept separately,
+because the boxes count up from zero when they scroll into view. Keep that shape when you edit
+one: write `value: 150`, not `big: "150+"`, or the counter has nothing to count. A visitor who
+has asked their device for less motion, or who has data saver on, sees the final number straight
+away instead.
 
 
 ### Public website
@@ -360,6 +440,60 @@ visitor's action still goes through.
 Every admin page **and every admin action** checks on the server that the user is on the team
 and that their role includes that section.
 A small `proxy.ts` also redirects people without a session before any page code runs.
+
+### How the newsletter works, end to end
+
+**1. Someone joins.** There are four doors in: the footer form, the box in the webinars block on
+the homepage, the consent tick on the registration form, and the switch in a learner's own
+account settings. Each form has a hidden field a person never sees; anything that fills it in is
+a bot and is quietly ignored. The same address can try five times a minute per visitor, no more.
+
+**2. What is recorded.** One row per address, holding the email, the name if given, where they
+signed up from, the exact consent wording they agreed to, the moment they agreed, and a private
+unsubscribe token. Alongside it, a consent log keeps every subscribe, resubscribe and
+unsubscribe with its time and address. That log is what you show if anyone ever asks for proof
+of consent. Someone who had unsubscribed and signs up again gets a fresh consent date, not the
+old one. The team gets an alert the first time an address joins, never again.
+
+**3. You see them** in **Admin → Subscribers**: the live list, with CSV export, a way to remove
+someone, and a way to add a person who agreed in writing offline.
+
+**4. You write a campaign** in **Admin → Email campaigns → New**: a subject, optional preview
+text, the body in simple formatting, and an audience. The audience is one of *all subscribers*,
+*a particular webinar's registrants* or *a particular course's learners*. Send a test to
+yourself first; the test is the real email, so what you see is what they get.
+
+**5. What happens when you press send.** The list is frozen into a set of recipients, so adding a
+subscriber mid-send does not change who gets this one. They go out in batches of a hundred
+through Resend, and each one is marked as sent with the id Resend gives back, so the delivery log
+shows exactly who received what. Sending runs after the page responds, so the admin screen never
+hangs waiting on a long list. When it finishes, the campaign shows its sent and failed counts.
+
+**6. Only people who opted in.** A campaign goes to addresses whose status is still *subscribed*.
+Transactional email is different and ignores the list entirely: a password reset, a webinar
+confirmation or a payment receipt always goes out, because the person asked for that specific
+thing.
+
+**7. Unsubscribing.** Every campaign carries a visible unsubscribe link and the
+`List-Unsubscribe` headers that put an "Unsubscribe" button in Gmail and Outlook themselves. One
+click marks the address as unsubscribed and writes it to the consent log; no sign-in, no
+questions. If the Resend webhook is set up, addresses that bounce or report the mail as spam are
+unsubscribed automatically. This is the part that keeps the academy out of spam folders, so do
+not weaken it.
+
+### If a campaign sits on "Sending"
+
+Sending runs in the background after the admin page has answered, so a hosting time limit, a
+restart or an error can stop it partway. The campaign then stays on **Sending**.
+
+The panel shows how many have gone and how many are still waiting, and a **Resume sending**
+button appears whenever any are still waiting. Pressing it starts where it stopped: only
+addresses still queued are sent, so nobody receives the email twice. If the send stopped because
+something broke, the campaign is marked **Failed** with the reason from the email provider shown
+on the page.
+
+**Resend → Emails** is the other half of the answer: it lists every message the website actually
+handed over, so you can see at a glance whether anything left the building.
 
 ### Scheduled campaigns
 Campaigns scheduled for later are sent by `/api/cron/campaigns`. Call it every 10 minutes with
