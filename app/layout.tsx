@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { MotionProvider } from "@/components/motion/motion-provider";
 import { brand } from "@/lib/content";
 import { siteUrl } from "@/lib/utils";
@@ -73,6 +74,9 @@ export const metadata: Metadata = {
   category: "education",
 };
 
+/** The measurement ID, e.g. G-XXXXXXXXXX. Empty everywhere it is not set. */
+const gaId = process.env.NEXT_PUBLIC_GA_ID?.trim();
+
 export const viewport: Viewport = {
   themeColor: "#0b1433",
   width: "device-width",
@@ -88,6 +92,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-dvh flex flex-col">
         <MotionProvider>{children}</MotionProvider>
+        {/*
+          Google Analytics. It loads only where NEXT_PUBLIC_GA_ID is set, so working
+          on the site locally does not add visits to the client's reports, and a
+          missing value simply means no tracking rather than a broken page.
+          Note: googletagmanager.com and the analytics endpoints must stay in the
+          content security policy in next.config.ts, or the browser blocks all of it.
+        */}
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
     </html>
   );

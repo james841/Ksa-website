@@ -10,11 +10,18 @@ const isDev = process.env.NODE_ENV !== "production";
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // googletagmanager.com serves the Google Analytics script itself.
+  `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  /*
+   * Where the page is allowed to send data. Google Analytics reports to several
+   * hosts depending on the visitor's region (region1.google-analytics.com and
+   * friends), so the wildcards matter: leave one out and visits quietly go
+   * missing from the reports with only a console warning to show for it.
+   */
+  `connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com${isDev ? " ws: wss:" : ""}`,
   "media-src 'self' https:",
   "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com https://iframe.mediadelivery.net",
   "frame-ancestors 'self'",

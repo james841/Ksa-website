@@ -19,6 +19,7 @@
     "postinstall": "next typegen || exit 0"
   },
   "dependencies": {
+    "@next/third-parties": "^16.4.5",
     "drizzle-orm": "^0.45.4",
     "marked": "^18.1.2",
     "motion": "^14.8.0",

@@ -148,6 +148,27 @@ Two things people trip over:
 - **Every plan has a daily and monthly sending limit.** Check yours in Resend before sending a
   campaign to the whole list, because a campaign that runs past the limit stops partway through.
 
+### Google Analytics
+
+Set `NEXT_PUBLIC_GA_ID` to the measurement ID (it looks like `G-XXXXXXXXXX`) and the tag loads.
+Leave it empty and nothing loads at all, which is what you want locally so your own clicking
+around never shows up in the client's reports.
+
+Two things about this one that are easy to get wrong:
+
+- **It is baked in at build time.** Adding the variable in Vercel does nothing until the next
+  deploy, so add it and then redeploy.
+- **The content security policy has to allow Google.** `script-src` lists
+  `www.googletagmanager.com`, and `connect-src` lists the analytics hosts including the regional
+  ones (`*.google-analytics.com`). Remove any of those and the browser blocks the tag silently:
+  the site looks fine and the reports stay empty. If analytics ever stops recording, open the
+  browser console and look for a message about `form-action`, `script-src` or `connect-src`
+  before looking anywhere else.
+
+The tag sets cookies, so if the academy wants to serve visitors under GDPR or POPIA rules
+properly, a consent banner that holds analytics back until someone agrees is the next step. The
+site does not have one yet.
+
 ### Testing that email works
 
 Work down this list on the **live site**, not on your computer. Without an API key, and on a
