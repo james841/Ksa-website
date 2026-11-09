@@ -23,6 +23,36 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 const DAY = 24 * 60 * 60 * 1000;
 
+/*
+ * The dashboard asks the database a lot of separate questions. If one of them
+ * fails, the whole page used to disappear behind "Something went wrong", which
+ * locks the team out of the entire admin over a single panel.
+ *
+ * The usual cause is the database being a migration behind the code: a new
+ * column exists in the code but not yet in the live database, so every query
+ * that touches that table is rejected. Now the panel is skipped, the rest of
+ * the page loads, and a notice at the top says what to do about it.
+ */
+function makeSafe(trouble: string[]) {
+  return async function safe<T>(what: string, q: Promise<T>, fallback: T): Promise<T> {
+    try {
+      return await q;
+    } catch (e) {
+      // Drizzle reports "Failed query: select …" and keeps the database's own
+      // words (such as 'column "error" does not exist') on the cause.
+      const err = e as Error & { cause?: unknown };
+      const cause = err?.cause instanceof Error ? err.cause.message : "";
+      const msg = [err instanceof Error ? err.message : String(e), cause].filter(Boolean).join(" | ");
+      console.error(`[admin] ${what} failed: ${msg}`);
+      trouble.push(msg);
+      return fallback;
+    }
+  };
+}
+
+/** Does this read like a database that has not had the latest migration run? */
+const looksBehind = (msgs: string[]) => msgs.some((m) => /does not exist|undefined column|relation .* does not exist/i.test(m));
+
 export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   const admin = await requirePermission("overview");
   const denied = (await searchParams).denied === "1";
@@ -30,6 +60,8 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   const c = (s: Section) => can(admin.staffRole, s);
   const since30 = new Date(nowMs() - 30 * DAY);
   const since7 = new Date(nowMs() - 7 * DAY);
+  const trouble: string[] = [];
+  const safe = makeSafe(trouble);
 
   const [
     [me],
@@ -55,7 +87,11 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     db.select({ n: count() }).from(schema.quoteRequests).where(eq(schema.quoteRequests.status, "in_progress")),
     db.select({ n: count() }).from(schema.emailSubscriptions).where(eq(schema.emailSubscriptions.status, "subscribed")),
     db.select({ n: count() }).from(schema.enrollments),
-    db.select({ n: count(), total: sum(schema.payments.amountCents) }).from(schema.payments).where(eq(schema.payments.status, "paid")),
+    safe(
+      "payments total",
+      db.select({ n: count(), total: sum(schema.payments.amountCents) }).from(schema.payments).where(eq(schema.payments.status, "paid")),
+      [{ n: 0, total: "0" as string | null }],
+    ),
     db
       .select({
         id: schema.webinars.id,
@@ -85,7 +121,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
       .from(schema.users)
       .where(gte(schema.users.createdAt, since30))
       .groupBy(sql`1`),
-    db.select().from(schema.emailCampaigns).orderBy(desc(schema.emailCampaigns.createdAt)).limit(1),
+    safe("last campaign", db.select().from(schema.emailCampaigns).orderBy(desc(schema.emailCampaigns.createdAt)).limit(1), []),
   ]);
 
   // 30 daily buckets for the sign-up chart.
@@ -130,6 +166,24 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
         <p role="alert" className="rounded-2xl border border-line bg-white px-5 py-4 text-sm text-ink">
           Your role ({ROLE_INFO[admin.staffRole].label}) does not include that page. Ask a super admin if you need access.
         </p>
+      ) : null}
+
+      {/* Says what is wrong in words the person can act on, instead of an empty page. */}
+      {trouble.length ? (
+        <div role="alert" className="rounded-2xl border border-[#e4b9b9] bg-[#fdf4f4] px-5 py-4 text-sm">
+          <p className="font-semibold text-ink">Part of this page could not load</p>
+          {looksBehind(trouble) ? (
+            <p className="mt-1.5 text-muted">
+              The database is behind the website: the code expects something the live database does not have yet. Run{" "}
+              <code className="rounded bg-white px-1.5 py-0.5 text-xs">npm run db:migrate</code> against the live database, then reload this page.
+              Everything else below is working normally.
+            </p>
+          ) : (
+            <p className="mt-1.5 text-muted">
+              A query the dashboard makes was refused. The rest of the page is fine. The reason is in the server log.
+            </p>
+          )}
+        </div>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
