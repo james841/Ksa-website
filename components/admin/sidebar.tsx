@@ -8,6 +8,7 @@ import { Logo } from "@/components/layout/logo";
 import { Book, Card, Chart, Globe, Help, Home, Image, Inbox, Layers, Lock, Logout, Menu, Send, Settings, Users, Video, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { can, ROLE_INFO, sectionForPath, type StaffRole } from "@/lib/auth/permissions";
+import { ThemeToggle } from "./theme-toggle";
 
 const groups = [
   {
@@ -28,6 +29,7 @@ const groups = [
       { href: "/admin/webinars", label: "Webinars", Icon: Video },
       { href: "/admin/courses", label: "Courses", Icon: Book },
       { href: "/admin/payments", label: "Course payments", Icon: Card },
+      { href: "/admin/analytics", label: "Website traffic", Icon: Chart },
     ],
   },
   {
@@ -96,6 +98,10 @@ export function AdminSidebar({ name, email, newQuotes, staffRole }: { name: stri
 
   const footer = (
     <div className="border-t border-white/10 p-4">
+      {/* Above the account details, so it is easy to reach and easy to ignore. */}
+      <div className="mb-3 border-b border-white/10 pb-3">
+        <ThemeToggle />
+      </div>
       <p className="truncate text-sm font-semibold text-white">{name}</p>
       <p className="truncate text-xs text-white/50">{email}</p>
       <p className="mt-1.5 inline-flex rounded-full bg-white/10 px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wider text-white/80">{ROLE_INFO[staffRole].label}</p>

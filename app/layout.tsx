@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Suspense } from "react";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { Tracker } from "@/components/analytics/tracker";
 import { MotionProvider } from "@/components/motion/motion-provider";
 import { brand } from "@/lib/content";
 import { siteUrl } from "@/lib/utils";
@@ -92,6 +94,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-dvh flex flex-col">
         <MotionProvider>{children}</MotionProvider>
+        {/* The academy's own visit counter. No cookie, no third party, and it
+            keeps working for the many visitors whose browser blocks Google. */}
+        <Suspense fallback={null}>
+          <Tracker />
+        </Suspense>
         {/*
           Google Analytics. It loads only where NEXT_PUBLIC_GA_ID is set, so working
           on the site locally does not add visits to the client's reports, and a

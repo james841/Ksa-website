@@ -15,6 +15,25 @@ const HTTPS = (process.env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https://");
 export const SESSION_COOKIE = HTTPS ? "__Host-ksa_session" : "ksa_session";
 const SESSION_DAYS = 30;
 
+/*
+ * Idle timeout.
+ *
+ * A session lasts 30 days, but it also has to be used. Go quiet for longer than
+ * the window below and the session is ended on the next request, whoever you are
+ * and whatever the cookie says. Staff get a shorter window than learners because
+ * an admin screen left open in a shared office is the bigger risk.
+ *
+ * Both can be changed with SESSION_IDLE_MINUTES and STAFF_IDLE_MINUTES.
+ */
+const minutes = (v: string | undefined, fallback: number) => {
+  const n = Number.parseInt(v ?? "", 10);
+  return Number.isFinite(n) && n >= 5 ? n : fallback;
+};
+export const IDLE_MINUTES = minutes(process.env.SESSION_IDLE_MINUTES, 120);
+export const STAFF_IDLE_MINUTES = minutes(process.env.STAFF_IDLE_MINUTES, 30);
+/** Only write "last seen" again after this long, so a busy page is not a write per click. */
+const TOUCH_AFTER_MS = 2 * 60 * 1000;
+
 export type SessionUser = {
   id: string;
   name: string;
@@ -65,6 +84,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
       staffRole: schema.users.staffRole,
       status: schema.users.status,
       emailVerifiedAt: schema.users.emailVerifiedAt,
+      lastSeenAt: schema.sessions.lastSeenAt,
     })
     .from(schema.sessions)
     .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
@@ -73,8 +93,44 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const u = rows[0];
   if (!u || u.status !== "active") return null;
   const staffRole = u.role === "admin" ? (u.staffRole ?? "super_admin") : null;
+
+  // Idle check. The server decides this, not the browser: a tab left open
+  // overnight is signed out even if nothing on the page ever noticed.
+  const idleMs = (staffRole ? STAFF_IDLE_MINUTES : IDLE_MINUTES) * 60 * 1000;
+  const quietFor = Date.now() - u.lastSeenAt.getTime();
+  if (quietFor > idleMs) {
+    await db.delete(schema.sessions).where(eq(schema.sessions.id, sha256(token))).catch(() => {});
+    return null;
+  }
+  // Mark it used, but not on every single request.
+  if (quietFor > TOUCH_AFTER_MS) {
+    await db
+      .update(schema.sessions)
+      .set({ lastSeenAt: new Date() })
+      .where(eq(schema.sessions.id, sha256(token)))
+      .catch(() => {});
+  }
+
   return { id: u.id, name: u.name, email: u.email, role: u.role, staffRole, emailVerified: !!u.emailVerifiedAt };
 });
+
+/** How long this person may stay idle, in minutes. For the on-screen warning. */
+export async function idleWindowMinutes() {
+  const user = await getCurrentUser();
+  return user?.staffRole ? STAFF_IDLE_MINUTES : IDLE_MINUTES;
+}
+
+/** Keeps the session alive after real activity in the browser. */
+export async function touchSession() {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!token) return false;
+  const res = await db
+    .update(schema.sessions)
+    .set({ lastSeenAt: new Date() })
+    .where(and(eq(schema.sessions.id, sha256(token)), gt(schema.sessions.expiresAt, sql`now()`)))
+    .returning({ id: schema.sessions.id });
+  return res.length > 0;
+}
 
 export async function requireUser(next?: string) {
   const user = await getCurrentUser();

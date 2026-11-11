@@ -80,6 +80,10 @@ export const users = pgTable(
     phone: text("phone"),
     institution: text("institution"),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    // "google" when the account was made by signing in with Google. Such accounts
+    // have no password the person knows; they can still set one with "forgot
+    // password" if they ever want to sign in the ordinary way.
+    oauthProvider: text("oauth_provider"),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     ...timestamps,
   },
@@ -95,6 +99,9 @@ export const sessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    // When this session was last used. A session that goes quiet for longer than
+    // the idle window is treated as ended, even though expires_at is weeks away.
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
     userAgent: text("user_agent"),
     ip: text("ip"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -542,6 +549,49 @@ export const auditLogs = pgTable(
   (t) => [index("audit_created_idx").on(t.createdAt)],
 );
 
+/*
+ * Visits, recorded by the website itself.
+ *
+ * This is the academy's own record, so it does not depend on Google Analytics and
+ * is not lost to ad blockers (most of which block Google but not a website's own
+ * address). It is deliberately thin on personal detail: no cookie is set for it,
+ * the IP address is never stored, and "visitor" is a one-way hash of the address
+ * and browser mixed with a salt that changes every day. That is enough to count
+ * the same person once in a day and impossible to turn back into a person.
+ */
+export const pageViews = pgTable(
+  "page_views",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Daily hash, not an identity: the same visitor gets a new one tomorrow.
+    visitor: text("visitor").notNull(),
+    path: text("path").notNull(),
+    title: text("title"),
+    // Where they came from: the tidy name ("Instagram", "Google"), the raw address,
+    // and the campaign tags if the link carried any.
+    source: text("source"),
+    channel: text("channel").notNull().default("direct"),
+    referrer: text("referrer"),
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    device: text("device").notNull().default("desktop"),
+    country: text("country"),
+    // How long the page was actually open, in seconds, sent when they leave.
+    seconds: integer("seconds"),
+    isEntry: boolean("is_entry").default(false).notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("views_created_idx").on(t.createdAt),
+    index("views_visitor_idx").on(t.visitor, t.createdAt),
+    index("views_channel_idx").on(t.channel),
+    index("views_path_idx").on(t.path),
+  ],
+);
+
+export type PageView = typeof pageViews.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Webinar = typeof webinars.$inferSelect;
 export type Course = typeof courses.$inferSelect;

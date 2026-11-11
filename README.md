@@ -148,6 +148,75 @@ Two things people trip over:
 - **Every plan has a daily and monthly sending limit.** Check yours in Resend before sending a
   campaign to the whole list, because a campaign that runs past the limit stops partway through.
 
+### Your own traffic figures (Admin → Website traffic)
+
+The website keeps its own record of visits, separate from Google Analytics and running at the
+same time. Both are on; neither replaces the other.
+
+Why bother with both: most ad blockers and several browsers block Google by default but not a
+website's own address, so the built-in figures are usually the higher and more honest of the two.
+It also needs no account, loads nothing from anyone else, and the data stays in your database.
+
+**Who can see it.** Super admins and admins only. Every other staff role has the link hidden and
+is turned away at the page itself and at the data behind it.
+
+**What it shows.** Who is on the site right now and what they are reading (refreshed every 15
+seconds), visitors and pages for a chosen period with the change against the period before, a
+chart per day, where people came from by channel and by name, a panel for social media on its
+own, the most read pages with time spent, devices, countries, the pages people land on first,
+and any campaigns you tagged.
+
+**Privacy.** No analytics cookie is set, so this part owes no consent banner. The IP address is
+never stored. A "visitor" is a one-way code made from the address and browser mixed with a salt
+that changes at midnight, which counts a person once a day and cannot be turned back into a
+person. Obvious robots are skipped, and nothing anyone does inside the admin is counted.
+
+**Social traffic.** Instagram and TikTok open links in their own browser, which hides where the
+visit came from, so untagged arrivals land under "Direct or untracked". Tag the links you post
+and they are named every time:
+
+```
+https://www.mykspace.com/?utm_source=instagram&utm_medium=social
+https://www.mykspace.com/webinars?utm_source=tiktok&utm_medium=social&utm_campaign=november-webinar
+```
+
+### Signing in with Google
+
+Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` and a "Continue with Google" button appears on
+the login and sign-up pages. Leave them empty and it does not, so there is never a button that
+cannot work.
+
+To create them: Google Cloud console → APIs & Services → Credentials → Create credentials →
+OAuth client ID → Web application. The authorised redirect URI must be exactly
+`https://your-site/api/auth/google/callback`. Add the two values in Vercel **and redeploy**: like
+the analytics ID, they are read when the site is built.
+
+How it behaves: an account is matched by email address, and only when Google says it has verified
+that address. So somebody who signed up with a password and later presses the Google button lands
+in their existing account, not a second one. A brand-new Google account skips the confirmation
+email, because the address is already proven. Those accounts have no password anyone knows; the
+person can set one later with "forgot password" if they want to.
+
+### Signing out people who go idle
+
+A session lasts 30 days, but it also has to be used. Go quiet for longer than the window and the
+session ends on the next request: **30 minutes for staff**, **2 hours for learners**. Change
+either with `STAFF_IDLE_MINUTES` and `SESSION_IDLE_MINUTES`.
+
+The server is what enforces this, so a tab left open all night is signed out whether or not the
+page noticed. On top of that, admin and dashboard pages show a one-minute warning with a "Stay
+signed in" button, and the login page explains why they are back there.
+
+### Dark mode in the admin
+
+The toggle sits at the bottom of the admin sidebar. The choice is kept in that browser and
+applied before the page is painted, so there is no white flash on the way in. It is scoped to the
+admin: the public website is never affected, even when clicking straight from one to the other.
+
+It works by repainting the handful of surface and text utilities the admin is built from (see the
+end of `app/globals.css`), so new admin pages written with the same `bg-white` / `text-ink` /
+`border-line` classes get dark mode for free.
+
 ### Google Analytics
 
 Set `NEXT_PUBLIC_GA_ID` to the measurement ID (it looks like `G-XXXXXXXXXX`) and the tag loads.

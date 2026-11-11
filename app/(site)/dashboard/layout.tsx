@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { requireUser } from "@/lib/auth/session";
+import { requireUser, IDLE_MINUTES } from "@/lib/auth/session";
+import { IdleGuard } from "@/components/auth/idle-guard";
 import { DashboardNav } from "@/components/dashboard/nav";
 
 export const metadata: Metadata = { title: "My dashboard", robots: { index: false, follow: false } };
@@ -24,5 +25,10 @@ export default function DashboardLayout({ children }: LayoutProps<"/dashboard">)
 
 async function Gate({ children }: { children: React.ReactNode }) {
   await requireUser("/dashboard");
-  return <>{children}</>;
+  return (
+    <>
+      <IdleGuard minutes={IDLE_MINUTES} />
+      {children}
+    </>
+  );
 }

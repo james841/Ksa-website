@@ -360,3 +360,67 @@ html[data-lite] *::after {
   transition-duration: 0s !important;
   scroll-behavior: auto !important;
 }
+
+/* ───────────── Admin dark mode ─────────────
+   A blue-dark theme for the back office only.
+
+   It works by repainting the handful of surface and text utilities the admin is
+   built from, rather than by rewriting every component. Two things keep it where
+   it belongs: the attribute is only ever set by the admin layout's own script,
+   and every rule is scoped to .admin-shell, so even if someone clicks through to
+   the public website without a full page load, nothing out there changes.
+
+   text-white and bg-blue are deliberately left alone: white stays white, and the
+   brand blue is only lifted a little so it still reads against a dark panel. */
+[data-admin-theme="dark"] .admin-shell {
+  color-scheme: dark;
+
+  background-color: #070d22;
+
+  .bg-white { background-color: #101a3c; }
+  .bg-mist { background-color: #0a1130; }
+  .bg-mist-200 { background-color: #182451; }
+  .bg-ink { background-color: #05091c; }
+  .hover\:bg-mist:hover { background-color: #16204a; }
+  .hover\:bg-white:hover { background-color: #16204a; }
+
+  .text-ink { color: #e9eeff; }
+  .text-muted { color: #96a4cb; }
+  .text-blue { color: #8fa5ff; }
+  .bg-blue { background-color: #3a5bff; }
+  .bg-blue-50 { background-color: #16214d; }
+
+  .border-line { border-color: #222e5c; }
+  .ring-line { --tw-ring-color: #222e5c; }
+  .divide-line > :not([hidden]) ~ :not([hidden]) { border-color: #222e5c; }
+
+  /* Form controls do not inherit from the utilities above. */
+  .field {
+    background: #0b1333;
+    border-color: #2a3768;
+    color: #e9eeff;
+  }
+  .field::placeholder { color: #6f7da6; }
+  .field:focus { border-color: #5c78ff; }
+  .field-label { color: #c3cdeb; }
+
+  .btn-ghost {
+    border-color: #2a3768;
+    color: #e9eeff;
+  }
+  .btn-ghost:hover {
+    border-color: #5c78ff;
+    background: #16204a;
+  }
+  .btn-dark { background: #2b3a7a; }
+  .btn-dark:hover { background: #35479a; }
+  .btn-light { background: #16204a; color: #e9eeff; }
+
+  /* Shadows read as grime on a dark panel; a hairline does the same job. */
+  .shadow-soft, .shadow-lift, .shadow-card { box-shadow: 0 0 0 1px #1c2850; }
+
+  /* The skeletons while a page loads. */
+  .animate-pulse.bg-white { background-color: #101a3c; }
+
+  table thead { background-color: #0d1536; }
+}

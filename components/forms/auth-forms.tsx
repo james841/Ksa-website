@@ -12,13 +12,20 @@ function useNext() {
 }
 
 export function LoginFormWithParams() {
-  return <LoginForm next={useNext()} />;
+  const params = useSearchParams();
+  return <LoginForm next={useNext()} timedOut={params.get("timeout") === "1"} />;
 }
-export function LoginForm({ next = "" }: { next?: string }) {
+export function LoginForm({ next = "", timedOut = false }: { next?: string; timedOut?: boolean }) {
   const [state, action] = useActionState(login, null);
   return (
     <form action={action} className="space-y-5" noValidate>
       <input suppressHydrationWarning type="hidden" name="next" value={next} />
+      {/* Says why they are back here, instead of leaving them to wonder. */}
+      {timedOut && !state ? (
+        <p role="status" className="rounded-xl bg-mist px-4 py-3 text-sm text-ink">
+          You were signed out because nothing happened for a while. Log in to pick up where you left off.
+        </p>
+      ) : null}
       <Field label="Email address" name="email" type="email" autoComplete="email" required defaultValue={state?.data?.email} error={state?.errors?.email} />
       <div>
         <Field label="Password" name="password" type="password" autoComplete="current-password" required error={state?.errors?.password} />

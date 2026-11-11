@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { count, eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireAdmin, STAFF_IDLE_MINUTES } from "@/lib/auth/session";
+import { IdleGuard } from "@/components/auth/idle-guard";
+import { adminThemeBoot } from "@/components/admin/theme-toggle";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { ToastProvider } from "@/components/admin/toast";
 import { FlashToast } from "@/components/admin/flash";
@@ -16,7 +18,10 @@ export const metadata: Metadata = {
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <ToastProvider>
-      <div className="min-h-dvh bg-mist lg:flex">
+      {/* Sets the saved theme before anything is painted, so the admin never
+          flashes white on the way into dark mode. Only admin pages carry it. */}
+      <script dangerouslySetInnerHTML={{ __html: adminThemeBoot }} />
+      <div className="admin-shell min-h-dvh bg-mist lg:flex">
         <Suspense fallback={<div className="hidden w-[264px] shrink-0 bg-ink lg:block" />}>
           <Shell />
         </Suspense>
@@ -44,7 +49,14 @@ async function Shell() {
 /** Every admin page is checked on the server. Hiding links is never the protection. */
 async function Gate({ children }: { children: React.ReactNode }) {
   await requireAdmin();
-  return <>{children}</>;
+  return (
+    <>
+      {/* Admin screens get the shorter idle window: a back office left open is
+          the thing worth protecting. The server enforces it either way. */}
+      <IdleGuard minutes={STAFF_IDLE_MINUTES} />
+      {children}
+    </>
+  );
 }
 
 function Loading() {

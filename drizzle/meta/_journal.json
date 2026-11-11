@@ -43,6 +43,13 @@
       "when": 1794222933611,
       "tag": "0005_campaign_error",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794330550890,
+      "tag": "0006_analytics_and_oauth",
+      "breakpoints": true
     }
   ]
 }
