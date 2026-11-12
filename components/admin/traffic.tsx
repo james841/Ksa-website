@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Children, useEffect, useState } from "react";
 
 /*
  * The live counter, refreshed every fifteen seconds.
@@ -77,7 +77,9 @@ export function DailyChart({ data }: { data: Array<{ day: string; visits: number
   const fmt = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-ZA", { day: "numeric", month: "short" });
   return (
     <div>
-      <div className="flex h-44 items-end gap-[3px]">
+      {/* Ninety days at phone width leaves about four pixels per bar, so the gap
+          shrinks with the screen rather than squeezing the bars to nothing. */}
+      <div className="flex h-44 items-end gap-px sm:gap-[3px]">
         {data.map((d) => (
           <div key={d.day} className="group relative flex-1" style={{ height: "100%" }}>
             <div className="flex h-full items-end">
@@ -97,6 +99,40 @@ export function DailyChart({ data }: { data: Array<{ day: string; visits: number
         <span>{data.length ? fmt(data[data.length - 1].day) : ""}</span>
       </div>
     </div>
+  );
+}
+
+/**
+ * Shows the first few rows and keeps the rest behind a button.
+ *
+ * Without this, a panel grows for ever: a hundred sources make a hundred rows
+ * and the page becomes a mile of scrolling. The top of a list is what anyone
+ * actually reads, so the rest waits until it is asked for.
+ */
+export function ShowMore({ children, show = 5, noun = "row" }: { children: React.ReactNode; show?: number; noun?: string }) {
+  const items = Children.toArray(children);
+  const [open, setOpen] = useState(false);
+  if (items.length <= show) return <>{items}</>;
+  const hidden = items.length - show;
+  // "1 more country", "4 more countries".
+  const word = hidden === 1 ? noun : noun.endsWith("y") ? `${noun.slice(0, -1)}ies` : `${noun}s`;
+  return (
+    <>
+      {open ? items : items.slice(0, show)}
+      <li className="pt-3">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue hover:underline"
+        >
+          {open ? "Show less" : `Show ${hidden} more ${word}`}
+          <span aria-hidden className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+            ▾
+          </span>
+        </button>
+      </li>
+    </>
   );
 }
 

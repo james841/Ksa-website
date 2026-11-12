@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/auth/session";
 import { Panel, StatCard } from "@/components/admin/ui";
-import { BarRow, DailyChart, LiveVisitors } from "@/components/admin/traffic";
+import { BarRow, DailyChart, LiveVisitors, ShowMore } from "@/components/admin/traffic";
 import { campaigns, countries, daily, devices, entryPages, liveNow, livePages, RANGES, sources, topPages, totals } from "@/lib/analytics/queries";
 
 /*
@@ -59,9 +59,10 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
             visitors whose browser blocks Google Analytics.
           </p>
         </div>
-        <nav aria-label="Period" className="flex gap-2">
+        {/* Scrolls sideways on a phone instead of making the whole page do it. */}
+          <nav aria-label="Period" className="no-scrollbar -mx-4 flex max-w-full gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           {Object.entries(RANGES).map(([k, r]) => (
-            <Link key={k} href={`/admin/analytics?range=${k}`} className={`btn btn-sm ${k === key ? "btn-dark" : "btn-ghost bg-white"}`}>
+            <Link key={k} href={`/admin/analytics?range=${k}`} className={`btn btn-sm shrink-0 ${k === key ? "btn-dark" : "btn-ghost bg-white"}`}>
               {r.label}
             </Link>
           ))}
@@ -98,9 +99,11 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         >
           {src.social.length ? (
             <ul className="divide-y divide-line">
-              {src.social.map((s) => (
-                <BarRow key={s.source} label={s.source ?? "Unknown"} value={s.visitors} total={socialTotal} />
-              ))}
+              <ShowMore show={6} noun="platform">
+                {src.social.map((s) => (
+                  <BarRow key={s.source} label={s.source ?? "Unknown"} value={s.visitors} total={socialTotal} />
+                ))}
+              </ShowMore>
             </ul>
           ) : (
             <div className="text-sm text-muted">
@@ -119,9 +122,11 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         <Panel title="Named sources" description="Every source, social or not.">
           {src.bySource.length ? (
             <ul className="divide-y divide-line">
-              {src.bySource.map((s) => (
-                <BarRow key={`${s.source}-${s.channel}`} label={s.source ?? "Unknown"} value={s.visitors} total={visitorTotal} note={CHANNEL_LABELS[s.channel]} />
-              ))}
+              <ShowMore show={6} noun="source">
+                {src.bySource.map((s) => (
+                  <BarRow key={`${s.source}-${s.channel}`} label={s.source ?? "Unknown"} value={s.visitors} total={visitorTotal} note={CHANNEL_LABELS[s.channel]} />
+                ))}
+              </ShowMore>
             </ul>
           ) : (
             <Empty />
@@ -131,6 +136,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         <Panel title="Most read pages">
           {pages.length ? (
             <ul className="divide-y divide-line">
+              <ShowMore show={6} noun="page">
               {pages.map((p) => (
                 <li key={p.path} className="flex items-center justify-between gap-4 py-2.5 text-sm">
                   <span className="min-w-0">
@@ -143,6 +149,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
                   </span>
                 </li>
               ))}
+              </ShowMore>
             </ul>
           ) : (
             <Empty />
@@ -166,9 +173,11 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         <Panel title="Countries">
           {geo.length ? (
             <ul className="divide-y divide-line">
-              {geo.map((c) => (
-                <BarRow key={c.country} label={safeCountry(c.country)} value={c.visitors} total={geoTotal} />
-              ))}
+              <ShowMore show={5} noun="country">
+                {geo.map((c) => (
+                  <BarRow key={c.country} label={safeCountry(c.country)} value={c.visitors} total={geoTotal} />
+                ))}
+              </ShowMore>
             </ul>
           ) : (
             <p className="text-sm text-muted">Countries are recorded by the hosting, and appear once the site is live on Vercel.</p>
@@ -178,12 +187,14 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         <Panel title="Where people land first" description="The first page of a visit.">
           {entries.length ? (
             <ul className="divide-y divide-line">
+              <ShowMore show={5} noun="page">
               {entries.map((e) => (
                 <li key={e.path} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                   <span className="truncate text-ink">{e.path}</span>
                   <span className="shrink-0 font-semibold text-ink">{e.sessions}</span>
                 </li>
               ))}
+              </ShowMore>
             </ul>
           ) : (
             <Empty />
@@ -194,6 +205,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
       {camp.length ? (
         <Panel title="Campaigns" description="Links you tagged with utm_campaign." className="mt-6">
           <ul className="divide-y divide-line">
+            <ShowMore show={6} noun="campaign">
             {camp.map((c) => (
               <li key={`${c.campaign}-${c.source}`} className="flex items-center justify-between gap-4 py-2.5 text-sm">
                 <span className="min-w-0">
@@ -203,6 +215,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
                 <span className="shrink-0 font-semibold text-ink">{c.visitors}</span>
               </li>
             ))}
+            </ShowMore>
           </ul>
         </Panel>
       ) : null}

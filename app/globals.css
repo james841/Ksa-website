@@ -82,6 +82,32 @@
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
   }
+
+  /*
+   * Nothing drags the page sideways.
+   *
+   * "clip" rather than "hidden": hidden would quietly turn the page into a
+   * scroll container, which breaks sticky headers and jump-to-section links.
+   * clip just refuses to scroll. Anything that genuinely needs to scroll
+   * sideways (a wide table, the course rail) says so on itself.
+   */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  /*
+   * The usual reason a phone can be dragged left and right.
+   *
+   * A grid column is sized "auto", whose minimum is the widest thing inside it
+   * that cannot be broken up: one long email address, one wide table, and the
+   * whole column grows past the screen, taking the page with it. Items are
+   * allowed to shrink instead. Anything that must keep its width says so with
+   * a min-w-* utility, which still wins over this.
+   */
+  :where(.grid) > * {
+    min-width: 0;
+  }
   h1,
   h2,
   h3,

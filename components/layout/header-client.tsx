@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { DataSaverToggle } from "@/components/ui/data-saver-toggle";
 import Image from "next/image";
@@ -154,10 +155,21 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
         ) : null}
       </AnimatePresence>
 
-      {/* Mobile drawer */}
-      <AnimatePresence>
-        {mobileOpen ? (
-          <m.div key="mobile" className="fixed inset-0 z-[60] xl:hidden" initial="closed" animate="open" exit="closed">
+      {/*
+        Mobile drawer.
+
+        It is sent to the end of <body> rather than left inside the header, and
+        that is not a detail. Once the page is scrolled the header takes a
+        backdrop blur, and a blur makes the header the frame that any "fixed"
+        child is positioned against. The drawer then tried to fill an 80px tall
+        header instead of the screen: it opened, but there was nothing to see
+        unless you had scrolled back to the top. Out here it is fixed to the
+        screen, always.
+      */}
+      <Portal>
+        <AnimatePresence>
+          {mobileOpen ? (
+            <m.div key="mobile" className="fixed inset-0 z-[60] xl:hidden" initial="closed" animate="open" exit="closed">
             <m.div
               className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
               variants={{ open: { opacity: 1 }, closed: { opacity: 0 } }}
@@ -188,12 +200,29 @@ export function HeaderClient({ account, mobileAccount }: { account: ReactNode; m
                   Request a service
                 </Link>
               </div>
+              </m.div>
             </m.div>
-          </m.div>
-        ) : null}
-      </AnimatePresence>
+          ) : null}
+        </AnimatePresence>
+      </Portal>
     </header>
   );
+}
+
+/**
+ * Renders its children at the end of <body>, away from any ancestor that could
+ * trap a fixed element (a transform, a filter, a backdrop blur).
+ */
+function Portal({ children }: { children: ReactNode }) {
+  // There is no <body> to portal into while the page is being rendered on the
+  // server, so the first paint skips it and the browser takes over after.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  if (!mounted) return null;
+  return createPortal(children, document.body);
 }
 
 function ActiveNavList(props: { openMenu: string | null; open: (href: string) => void; close: () => void }) {
